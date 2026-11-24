@@ -26,7 +26,7 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;font-weight:600
 .num,td.n,th.n{font-variant-numeric:tabular-nums}
 button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--teal);outline-offset:2px}
-.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:none;margin:0;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
 
 /* menu lateral */
 .app{display:flex;min-height:100vh}
@@ -91,14 +91,16 @@ main{padding-block:24px 64px}
 
 /* tables */
 .tw{overflow-x:auto;min-width:0}
-table{border-collapse:collapse;width:100%}
-th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
-th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);font-weight:600;background:var(--surface-2)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:8px 8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top;white-space:nowrap}
+th.wr,td.wr{white-space:normal;min-width:260px}
+td:has(.chips),table.mx th.doc,.dficha .dt th,.dficha .dt td{white-space:normal}
+th{font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2);font-weight:600;background:var(--surface-2)}
 td.n,th.n{text-align:right}
 td.c,th.c{text-align:center}
 tr.click{cursor:pointer}
 tr.click:hover td{background:var(--surface-2)}
-.heat{display:inline-block;min-width:48px;text-align:right;padding:1px 6px;border-radius:4px;font-variant-numeric:tabular-nums;font-weight:600}
+.heat{display:inline-block;min-width:42px;text-align:right;padding:1px 6px;border-radius:4px;font-variant-numeric:tabular-nums;font-weight:600}
 .h-otimo{background:var(--ok-soft);color:var(--ok)}
 .h-bom{background:var(--info-soft);color:var(--info)}
 .h-atencao{background:var(--warn-soft);color:var(--warn)}
@@ -106,7 +108,7 @@ tr.click:hover td{background:var(--surface-2)}
 .h-none{color:var(--ink-3)}
 
 /* forms */
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px 16px}
 .fld{display:flex;flex-direction:column;gap:4px;min-width:0}
 .fld>span{font-size:12px;color:var(--ink-2);font-weight:500}
 .inp,select.inp,textarea.inp{width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:7px 9px;min-width:0}
@@ -171,7 +173,7 @@ a.btn{text-decoration:none;color:inherit}a.btn.primary{color:var(--on-accent)}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
 
 /* report */
-.report{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:clamp(20px,4vw,48px);display:flex;flex-direction:column;gap:28px;max-width:920px;margin:0 auto;width:100%}
+.report{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:clamp(20px,4vw,48px);display:flex;flex-direction:column;gap:28px;max-width:1500px;margin:0 auto;width:100%}
 .rcover{display:flex;flex-direction:column;gap:14px;border-bottom:3px solid var(--brand);padding-bottom:22px}
 .rcover .top-r{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .rcover img{height:44px;width:auto}
@@ -193,10 +195,12 @@ a.btn{text-decoration:none;color:inherit}a.btn.primary{color:var(--on-accent)}
 .st{display:inline-grid;place-items:center;min-width:30px;height:22px;padding:0 4px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.02em}
 .st-C{background:var(--ok-soft);color:var(--ok)}.st-P{background:var(--warn-soft);color:var(--warn)}.st-NC{background:var(--bad-soft);color:var(--bad)}.st-NA{background:var(--na-soft);color:var(--na)}.st-{color:var(--ink-3)}
 table.mx{font-size:13px}
-table.mx th.doc{min-width:64px;max-width:96px;text-align:center;text-transform:none;letter-spacing:0;font-size:11px;line-height:1.25;vertical-align:bottom}
+table.mx th,table.mx td{padding-left:5px;padding-right:5px}
+table.mx td.cell{padding-left:2px;padding-right:2px}
+table.mx th.doc{min-width:60px;max-width:88px;text-align:center;text-transform:none;letter-spacing:0;font-size:11px;line-height:1.25;vertical-align:bottom}
 table.mx th.doc b{display:block;color:var(--teal);font-size:11px}
-table.mx td.cell{text-align:center;padding:6px 4px}
-table.mx .stick{position:sticky;left:0;z-index:1;background:var(--surface);box-shadow:1px 0 0 var(--line);min-width:180px}
+table.mx td.cell{text-align:center;padding:6px 2px}
+table.mx .stick{position:sticky;left:0;z-index:1;background:var(--surface);box-shadow:1px 0 0 var(--line);min-width:170px}
 table.mx th.stick{background:var(--surface-2)}
 table.mx tr:hover td{background:var(--surface-2)}
 .chips{display:flex;flex-wrap:wrap;gap:4px;min-width:200px}
@@ -425,7 +429,7 @@ function rPainel(){
   h+=`<div class="card sec chart"><h2>Onde estão as falhas</h2><p class="hint">Índice médio de cada bloco do checklist nesta competência. Linhas tracejadas: 60% Atenção · 75% Bom · 90% Ótimo.</p>${chartBlocos(rows)}</div>`;
   const ab=fs.flatMap(f=>(f.ncs||[]).filter(n=>n.situacao!=="Corrigida").map(n=>({...n,f}))).sort((a,b)=>(a.prazo||"9").localeCompare(b.prazo||"9"));
   h+=`<div class="card sec"><h2>Pendências em aberto</h2>${ab.length?`<div class="tw"><table><thead><tr><th>Prazo</th><th>Prioridade</th><th>Item</th><th>Falha</th><th>Funcionário / processo</th><th>Assistente</th><th>Situação</th></tr></thead><tbody>
-    ${ab.map(n=>{const venc=n.prazo&&n.prazo<hoje();return `<tr class="click" data-open="${esc(n.f.id)}"><td class="num" style="${venc?"color:var(--bad);font-weight:600":""}">${fmtD(n.prazo)}${venc?" · vencido":""}</td><td>${prPill(n.prioridade)}</td><td class="num">${esc(n.item||"")}</td><td>${esc(n.falha)}</td><td>${esc(n.funcionario)}</td><td>${esc(n.f.assistente)}</td><td>${esc(n.situacao||"Aberta")}</td></tr>`}).join("")}</tbody></table></div>`:`<div class="empty">Nenhuma não conformidade em aberto nesta competência.</div>`}</div>`;
+    ${ab.map(n=>{const venc=n.prazo&&n.prazo<hoje();return `<tr class="click" data-open="${esc(n.f.id)}"><td class="num" style="${venc?"color:var(--bad);font-weight:600":""}">${fmtD(n.prazo)}${venc?" · vencido":""}</td><td>${prPill(n.prioridade)}</td><td class="num">${esc(n.item||"")}</td><td class="wr">${esc(n.falha)}</td><td class="wr">${esc(n.funcionario)}</td><td>${esc(n.f.assistente)}</td><td>${esc(n.situacao||"Aberta")}</td></tr>`}).join("")}</tbody></table></div>`:`<div class="empty">Nenhuma não conformidade em aberto nesta competência.</div>`}</div>`;
   el.innerHTML=h}
 
 function emptyComp(){
@@ -579,7 +583,7 @@ function relatorioHTML(){
   const bl=BLOCOS.map(b=>({b,v:avg(k.cs.map(x=>x.c.blocos[b.k].ind))}));
   const pior=bl.filter(x=>x.v!=null).sort((a,b)=>a.v-b.v)[0];
   const mv=mvAtual();let sn=0;const N=()=>++sn;
-  const listaMov=(mov)=>{if(mv)return movSecao(mv,mov==="Admissão"?"adm":"dem");const l=func.filter(p=>p.mov===mov);return l.length?`<div class="tw"><table><thead><tr><th>Funcionário</th><th>Matrícula</th><th>Data</th><th>Assistente / obra</th><th>Documentação</th><th>Pendências</th></tr></thead><tbody>${l.map(p=>`<tr><td>${esc(p.nome||"—")}</td><td>${esc(p.matricula||"—")}</td><td class="num">${fmtD(p.data)}</td><td>${esc(p.f.assistente)}${p.f.obra?" · "+esc(p.f.obra):""}</td><td>${p.docs==="Completa"?'<span class="pill p-otimo">Completa</span>':p.docs==="Pendente"?'<span class="pill p-atencao">Pendente</span>':p.docs==="Não localizada"?'<span class="pill p-critico">Não localizada</span>':'<span class="pill p-none">Não informado</span>'}</td><td>${esc(p.pendencias||"")}</td></tr>`).join("")}</tbody></table></div>`:`<p class="muted">Nenhuma ${mov==="Admissão"?"admissão":"rescisão"} registrada nesta competência.</p>`};
+  const listaMov=(mov)=>{if(mv)return movSecao(mv,mov==="Admissão"?"adm":"dem");const l=func.filter(p=>p.mov===mov);return l.length?`<div class="tw"><table><thead><tr><th>Funcionário</th><th>Matrícula</th><th>Data</th><th>Assistente / obra</th><th>Documentação</th><th>Pendências</th></tr></thead><tbody>${l.map(p=>`<tr><td>${esc(p.nome||"—")}</td><td>${esc(p.matricula||"—")}</td><td class="num">${fmtD(p.data)}</td><td>${esc(p.f.assistente)}${p.f.obra?" · "+esc(p.f.obra):""}</td><td>${p.docs==="Completa"?'<span class="pill p-otimo">Completa</span>':p.docs==="Pendente"?'<span class="pill p-atencao">Pendente</span>':p.docs==="Não localizada"?'<span class="pill p-critico">Não localizada</span>':'<span class="pill p-none">Não informado</span>'}</td><td class="wr">${esc(p.pendencias||"")}</td></tr>`).join("")}</tbody></table></div>`:`<p class="muted">Nenhuma ${mov==="Admissão"?"admissão":"rescisão"} registrada nesta competência.</p>`};
   const conf=(mov)=>{if(mv){const l=mv[mov==="Admissão"?"adm":"dem"].rows;const c=l.filter(r=>!r.st.some(x=>x==="NC"||x==="P")).length;return l.length?`${c} de ${l.length} sem documento NC ou P`:"sem registros"}const l=func.filter(p=>p.mov===mov);const c=l.filter(p=>p.docs==="Completa").length;return l.length?`${c} de ${l.length} (${pct(c/l.length)}) com documentação completa`:"sem registros"};
   return `<article class="report" id="report">
    <header class="rcover"><div class="top-r"><span><img class="logo-light" alt="Rio Ave" src="${$(".top .logo-light").src}"><img class="logo-dark" alt="Rio Ave" src="${$(".top .logo-dark").src}"></span><span class="eyebrow">Departamento Pessoal</span></div>
@@ -597,12 +601,12 @@ function relatorioHTML(){
      ${k.cs.map(({f,c})=>{const r=reinc(f);return `<tr><td><b>${esc(f.assistente||"—")}</b></td><td>${esc(f.obra)}</td><td class="n">${esc(f.pastas||"—")}</td><td class="n">${heat(c.ind)}</td>${BLOCOS.map(b=>`<td class="n">${heat(c.blocos[b.k].ind)}</td>`).join("")}<td class="n">${c.ncAltas}</td><td class="n">${r==null?"—":r}</td><td>${pill(c.ind)}</td></tr>`}).join("")}</tbody></table></div>
      <p class="small muted">${BLOCOS.map(b=>b.k+" = "+b.curto).join(" · ")}${prevComp?"":" · Reincidência e evolução aparecem a partir da segunda competência auditada."}</p></section>
    <section class="rsec chart"><h2>${N()}. Resultado por bloco</h2>${chartBlocos(bl.map(x=>({label:x.b.k+" · "+x.b.curto,v:x.v})))}</section>
-   <section class="rsec"><h2>${N()}. Itens com mais falhas</h2>${itemStats.length?`<div class="tw"><table><thead><tr><th class="n">Nº</th><th>Item de verificação</th><th class="n">NC</th><th class="n">P</th><th class="n">Fichas aplicáveis</th></tr></thead><tbody>${itemStats.slice(0,10).map(s=>`<tr><td class="n">${s.i}</td><td>${esc(ITENS[s.i])}</td><td class="n">${s.nc}</td><td class="n">${s.p}</td><td class="n">${s.ap}</td></tr>`).join("")}</tbody></table></div>`:`<p class="muted">Nenhum item marcado como NC ou P.</p>`}</section>
+   <section class="rsec"><h2>${N()}. Itens com mais falhas</h2>${itemStats.length?`<div class="tw"><table><thead><tr><th class="n">Nº</th><th>Item de verificação</th><th class="n">NC</th><th class="n">P</th><th class="n">Fichas aplicáveis</th></tr></thead><tbody>${itemStats.slice(0,10).map(s=>`<tr><td class="n">${s.i}</td><td class="wr">${esc(ITENS[s.i])}</td><td class="n">${s.nc}</td><td class="n">${s.p}</td><td class="n">${s.ap}</td></tr>`).join("")}</tbody></table></div>`:`<p class="muted">Nenhum item marcado como NC ou P.</p>`}</section>
    `:""}
    ${fs.length||mv?`<section class="rsec"><h2>${N()}. Documentação admissional</h2>${listaMov("Admissão")}</section>
    <section class="rsec"><h2>${N()}. Documentação demissional</h2>${listaMov("Desligamento")}</section>`:""}
-   ${fs.length?`<section class="rsec"><h2>${N()}. Não conformidades</h2>${ncs.length?`<div class="tw"><table><thead><tr><th>Prioridade</th><th class="n">Item</th><th>Falha identificada</th><th>Funcionário / processo</th><th>Assistente</th><th>Prazo</th><th>Situação</th></tr></thead><tbody>${ncs.map(n=>`<tr><td>${prPill(n.prioridade)}</td><td class="n">${esc(n.item||"—")}</td><td>${esc(n.falha)}</td><td>${esc(n.funcionario)}</td><td>${esc(n.f.assistente)}</td><td class="num">${fmtD(n.prazo)}</td><td>${esc(n.situacao||"Aberta")}${n.correcao?" em "+fmtD(n.correcao):""}</td></tr>`).join("")}</tbody></table></div>`:`<p class="muted">Nenhuma não conformidade registrada.</p>`}</section>
-   <section class="rsec"><h2>${N()}. Plano de ação</h2>${plano.length?`<div class="tw"><table><thead><tr><th>Ação corretiva</th><th>Responsável</th><th>Prazo</th><th>Validação</th><th>Ficha</th></tr></thead><tbody>${plano.map(p=>`<tr><td>${esc(p.acao)}</td><td>${esc(p.responsavel)}</td><td class="num">${fmtD(p.prazo)}</td><td class="num">${fmtD(p.validacao)}</td><td>${esc(p.f.assistente)}</td></tr>`).join("")}</tbody></table></div>`:`<p class="muted">Nenhuma ação registrada.</p>`}</section>
+   ${fs.length?`<section class="rsec"><h2>${N()}. Não conformidades</h2>${ncs.length?`<div class="tw"><table><thead><tr><th>Prioridade</th><th class="n">Item</th><th>Falha identificada</th><th>Funcionário / processo</th><th>Assistente</th><th>Prazo</th><th>Situação</th></tr></thead><tbody>${ncs.map(n=>`<tr><td>${prPill(n.prioridade)}</td><td class="n">${esc(n.item||"—")}</td><td class="wr">${esc(n.falha)}</td><td class="wr">${esc(n.funcionario)}</td><td>${esc(n.f.assistente)}</td><td class="num">${fmtD(n.prazo)}</td><td>${esc(n.situacao||"Aberta")}${n.correcao?" em "+fmtD(n.correcao):""}</td></tr>`).join("")}</tbody></table></div>`:`<p class="muted">Nenhuma não conformidade registrada.</p>`}</section>
+   <section class="rsec"><h2>${N()}. Plano de ação</h2>${plano.length?`<div class="tw"><table><thead><tr><th>Ação corretiva</th><th>Responsável</th><th>Prazo</th><th>Validação</th><th>Ficha</th></tr></thead><tbody>${plano.map(p=>`<tr><td class="wr">${esc(p.acao)}</td><td>${esc(p.responsavel)}</td><td class="num">${fmtD(p.prazo)}</td><td class="num">${fmtD(p.validacao)}</td><td>${esc(p.f.assistente)}</td></tr>`).join("")}</tbody></table></div>`:`<p class="muted">Nenhuma ação registrada.</p>`}</section>
    <section class="rsec"><h2>${N()}. Parecer do auditor</h2>${fs.map(f=>{const p=f.parecer||{};return `<div class="rsec" style="gap:6px"><h3>${esc(f.assistente||"—")}${f.obra?" · "+esc(f.obra):""}</h3>
      ${p.falhas?`<p><b>Principais falhas:</b> ${esc(p.falhas)}</p>`:""}${p.orientacoes?`<p><b>Orientações repassadas:</b> ${esc(p.orientacoes)}</p>`:""}
      <p class="small muted">Nova auditoria: ${esc(p.nova||"—")} · Reavaliação prevista: ${fmtD(p.reavaliacao)}</p></div>`}).join("")}</section>`:""}
@@ -1012,12 +1016,12 @@ function docFichaHTML(f){const L=fichaLinhas(f),c=L.c;const p=f.parecer||{};cons
    <tr style="font-weight:700"><td>Total</td><td class="n">${c.C}</td><td class="n">${c.P}</td><td class="n">${c.NC}</td><td class="n">${c.NA}</td><td class="n">${c.ap}</td><td class="n">${pct(c.ind)}</td></tr></tbody></table>
    <p class="dnote">Índice = itens C ÷ itens aplicáveis (C + P + NC). O P não pontua e o NA fica fora. Faixas: Ótimo a partir de 90% · Bom a partir de 75% · Atenção a partir de 60% · Crítico abaixo de 60%.</p>
    <h3 class="dsec">5. Registro das não conformidades</h3>
-   ${(f.ncs||[]).length?`<table class="dt"><thead><tr><th style="width:40px" class="c">Item</th><th>Falha identificada</th><th style="width:70px">Prioridade</th><th>Funcionário ou processo</th><th style="width:78px">Prazo</th><th style="width:78px">Situação</th></tr></thead><tbody>${f.ncs.map(n=>`<tr><td class="c">${esc(n.item||"—")}</td><td>${esc(n.falha)}</td><td>${esc(n.prioridade)}</td><td>${esc(n.funcionario)}</td><td>${fmtD(n.prazo)}</td><td>${esc(n.situacao||"Aberta")}</td></tr>`).join("")}</tbody></table>`:`<p class="dnote">Nenhuma não conformidade registrada.</p>`}
+   ${(f.ncs||[]).length?`<table class="dt"><thead><tr><th style="width:40px" class="c">Item</th><th>Falha identificada</th><th style="width:70px">Prioridade</th><th>Funcionário ou processo</th><th style="width:78px">Prazo</th><th style="width:78px">Situação</th></tr></thead><tbody>${f.ncs.map(n=>`<tr><td class="c">${esc(n.item||"—")}</td><td class="wr">${esc(n.falha)}</td><td>${esc(n.prioridade)}</td><td class="wr">${esc(n.funcionario)}</td><td>${fmtD(n.prazo)}</td><td>${esc(n.situacao||"Aberta")}</td></tr>`).join("")}</tbody></table>`:`<p class="dnote">Nenhuma não conformidade registrada.</p>`}
    <h3 class="dsec">6. Plano de ação</h3>
-   ${(f.plano||[]).length?`<table class="dt"><thead><tr><th>Ação corretiva</th><th>Responsável</th><th style="width:78px">Prazo</th><th style="width:90px">Validação</th></tr></thead><tbody>${f.plano.map(a=>`<tr><td>${esc(a.acao)}</td><td>${esc(a.responsavel)}</td><td>${fmtD(a.prazo)}</td><td>${fmtD(a.validacao)}</td></tr>`).join("")}</tbody></table>`:`<p class="dnote">Nenhuma ação registrada.</p>`}
+   ${(f.plano||[]).length?`<table class="dt"><thead><tr><th>Ação corretiva</th><th>Responsável</th><th style="width:78px">Prazo</th><th style="width:90px">Validação</th></tr></thead><tbody>${f.plano.map(a=>`<tr><td class="wr">${esc(a.acao)}</td><td>${esc(a.responsavel)}</td><td>${fmtD(a.prazo)}</td><td>${fmtD(a.validacao)}</td></tr>`).join("")}</tbody></table>`:`<p class="dnote">Nenhuma ação registrada.</p>`}
    <h3 class="dsec">7. Parecer do auditor</h3>
    <table class="dt">${[["Principais falhas identificadas",p.falhas],["Orientações repassadas à assistente",p.orientacoes],["Necessidade de nova auditoria",p.nova],["Data prevista para reavaliação",p.reavaliacao?fmtD(p.reavaliacao):""],["Assinatura do auditor",p.assinatura],["Ciência da responsável pela obra",p.ciencia]].map(([a,b])=>`<tr><th style="width:38%">${a}</th><td>${esc(b||"")}</td></tr>`).join("")}</table>
-   ${(f.func||[]).length?`<h3 class="dsec">Anexo – Movimentações conferidas</h3><table class="dt"><thead><tr><th>Movimentação</th><th>Funcionário</th><th>Matrícula</th><th>Data</th><th>Documentação</th><th>Pendências</th></tr></thead><tbody>${f.func.map(x=>`<tr><td>${esc(x.mov)}</td><td>${esc(x.nome)}</td><td>${esc(x.matricula)}</td><td>${fmtD(x.data)}</td><td>${esc(x.docs||"Não conferida")}</td><td>${esc(x.pendencias)}</td></tr>`).join("")}</tbody></table>`:""}
+   ${(f.func||[]).length?`<h3 class="dsec">Anexo – Movimentações conferidas</h3><table class="dt"><thead><tr><th>Movimentação</th><th>Funcionário</th><th>Matrícula</th><th>Data</th><th>Documentação</th><th>Pendências</th></tr></thead><tbody>${f.func.map(x=>`<tr><td>${esc(x.mov)}</td><td>${esc(x.nome)}</td><td>${esc(x.matricula)}</td><td>${fmtD(x.data)}</td><td>${esc(x.docs||"Não conferida")}</td><td class="wr">${esc(x.pendencias)}</td></tr>`).join("")}</tbody></table>`:""}
   </article>`}
 
 async function baixarPDF(f){const m=$("#envmsg");if(m)m.textContent="Gerando PDF…";
