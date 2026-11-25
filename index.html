@@ -287,6 +287,10 @@ table.mv tr.click:hover td{background:var(--teal-soft)}
 .basesel label{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3)}
 .basesel select{font-weight:600}
 .brand-sub{padding-bottom:12px!important}
+.grp{font-family:var(--f-body);font-size:12px;margin:16px 0 2px;color:var(--teal);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+.dnota{font-size:11.5px;color:var(--ink-2);font-style:italic;font-weight:400}
+.semchk{display:inline-flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;white-space:nowrap}
+.semchk input{accent-color:var(--teal);width:15px;height:15px}
 </style>
 <style>html,body{margin:0;padding:0}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%237EB4EA%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Crect x=%275%27 y=%274%27 width=%2714%27 height=%2717%27 rx=%272%27/%3E%3Cpath d=%27M9 4V3h6v1%27/%3E%3Cpath d=%27m8.5 13 2 2 4-4.5%27/%3E%3C/svg%3E">
@@ -327,11 +331,11 @@ table.mv tr.click:hover td{background:var(--teal-soft)}
 <script>
 /* ---------- referência (planilha "Ficha Conformidades – DP") ---------- */
 const BLOCOS=[
- {k:"A",nome:"Organização das pastas funcionais",curto:"Organização das pastas",de:1,ate:7},
- {k:"B",nome:"Documentação admissional",curto:"Documentação admissional",de:8,ate:13},
- {k:"C",nome:"Documentos e movimentações durante o contrato",curto:"Movimentações no contrato",de:14,ate:20},
- {k:"D",nome:"Desligamentos e arquivos de ex-funcionários",curto:"Desligamentos",de:21,ate:25},
- {k:"E",nome:"Controle, segurança e rotina administrativa",curto:"Controle e rotina",de:26,ate:30}];
+ {k:"A",nome:"Organização das pastas funcionais",curto:"Organização das pastas",its:[1,2,3,4,5,6]},
+ {k:"B",nome:"Documentação admissional",curto:"Documentação admissional",its:[8,9,11]},
+ {k:"D",nome:"Desligamentos e arquivos de ex-funcionários",curto:"Desligamentos",its:[21,23,24]},
+ {k:"E",nome:"Controle, segurança e rotina administrativa",curto:"Controle e rotina",its:[26,27,30]}];
+const ITENS_ATIVOS=BLOCOS.flatMap(b=>b.its),N_ITENS=ITENS_ATIVOS.length;
 const ITENS=["",
  "Todos os funcionários ativos possuem pasta funcional individual.",
  "As pastas estão identificadas corretamente.",
@@ -398,7 +402,7 @@ const avg=a=>{const v=a.filter(x=>x!=null&&!isNaN(x));return v.length?v.reduce((
 /* ---------- cálculo (mesma regra da planilha: C ÷ (C+P+NC)) ---------- */
 function calc(f){
   const resp=f.resp||{};const out={blocos:{},C:0,P:0,NC:0,NA:0,sem:0};
-  for(const b of BLOCOS){const o={C:0,P:0,NC:0,NA:0};for(let i=b.de;i<=b.ate;i++){const r=resp[i];if(o[r]!=null)o[r]++;else out.sem++}
+  for(const b of BLOCOS){const o={C:0,P:0,NC:0,NA:0};for(const i of b.its){const r=resp[i];if(o[r]!=null)o[r]++;else out.sem++}
     o.ap=o.C+o.P+o.NC;o.ind=o.ap?o.C/o.ap:null;out.blocos[b.k]=o;out.C+=o.C;out.P+=o.P;out.NC+=o.NC;out.NA+=o.NA}
   out.ap=out.C+out.P+out.NC;out.ind=out.ap?out.C/out.ap:null;
   const ncs=f.ncs||[];out.ncAltas=ncs.filter(n=>n.prioridade==="Alta").length;
@@ -408,7 +412,7 @@ function calc(f){
   out.noPrazo=ok+late?ok/(ok+late):null;
   return out}
 function anterior(f){return state.fichas.filter(x=>x.id!==f.id&&(x.assistente||"").trim().toLowerCase()===(f.assistente||"").trim().toLowerCase()&&(x.competencia||"")<(f.competencia||"")).sort((a,b)=>(b.competencia||"").localeCompare(a.competencia||""))[0]}
-function reinc(f){const p=anterior(f);if(!p)return null;let n=0;const r=f.resp||{},q=p.resp||{};for(let i=1;i<=30;i++)if(r[i]==="NC"&&(q[i]==="NC"||q[i]==="P"))n++;return n}
+function reinc(f){const p=anterior(f);if(!p)return null;let n=0;const r=f.resp||{},q=p.resp||{};for(const i of ITENS_ATIVOS)if(r[i]==="NC"&&(q[i]==="NC"||q[i]==="P"))n++;return n}
 
 /* ---------- estado ---------- */
 const state={fichas:[],loaded:false,comp:"2026-11",view:"painel",sel:null,canWrite:true,db:null,dbOk:null,base:"rioave"};
@@ -455,7 +459,7 @@ function rPainel(){
   let h=`<div class="vhead"><div><div class="eyebrow">Competência ${esc(compLabel(state.comp))}</div><h1>Painel da auditoria</h1></div>
     <div class="row"><a class="btn" href="#relatorio">Ver relatório</a><button class="btn primary" data-act="nova">Nova ficha</button></div></div>`;
   if(!state.loaded){el.innerHTML=h+`<div class="card empty">Carregando as fichas salvas…</div>`;return}
-  const cov=`<div class="card sec"><h2>Cobertura por empresa</h2>${coberturaTable()}</div>`;
+  const cov=`<div class="card sec"><h2>Cobertura por empresa</h2><p class="hint" style="margin-top:-6px">Marque “sem movimentação” nas empresas que não tiveram admissão nem desligamento na competência.</p>${coberturaTable(undefined,undefined,undefined,true)}</div>`;
   if(!fs.length){el.innerHTML=h+cov+(mvAtual()?movObraCard():"")+emptyComp();return}
   h+=`<div class="kpis">
     <div class="card kpi"><span class="l">Índice geral</span><span class="v">${pct(k.ind)}</span><span class="s">${pill(k.ind)} média de ${fs.length} ficha${fs.length>1?"s":""}</span></div>
@@ -477,8 +481,8 @@ function rPainel(){
 
 function emptyComp(){
   return `<div class="card sec"><h2>Nenhuma ficha em ${esc(compLabel(state.comp))}</h2>
-   <p class="muted" style="margin:0;max-width:68ch">Crie uma ficha para cada assistente auditada. Cada ficha segue a planilha: identificação, os 30 itens do checklist em 5 blocos, o plano de ação e o parecer. Todas as admissões e desligamentos do mês devem ser verificados e conferidos na aba Movimentações.</p>
-   <div class="kpis">${BLOCOS.map(b=>`<div class="card kpi" style="box-shadow:none"><span class="l">Bloco ${b.k} · ${b.ate-b.de+1} itens</span><span class="s" style="color:var(--ink)">${esc(b.nome)}</span></div>`).join("")}</div>
+   <p class="muted" style="margin:0;max-width:68ch">Crie uma ficha para cada assistente auditada. Cada ficha segue a planilha: identificação, os ${N_ITENS} itens do checklist em ${BLOCOS.length} blocos, o plano de ação e o parecer. Todas as admissões e desligamentos do mês devem ser verificados e conferidos na aba Movimentações.</p>
+   <div class="kpis">${BLOCOS.map(b=>`<div class="card kpi" style="box-shadow:none"><span class="l">Bloco ${b.k} · ${b.its.length} itens</span><span class="s" style="color:var(--ink)">${esc(b.nome)}</span></div>`).join("")}</div>
    <div class="row"><button class="btn primary" data-act="nova">Criar a primeira ficha</button></div></div>`}
 
 /* ---------- FICHAS ---------- */
@@ -496,8 +500,8 @@ function rFichas(){
 function cardsHTML(fs){return fs.map(f=>{const c=calc(f);return `<button class="fcard" data-sel="${esc(f.id)}" aria-current="${f.id===state.sel}">
      <div class="meta"><span class="nm">${esc(f.assistente||"(sem nome)")}</span>${pill(c.ind)}</div>
      <div class="muted small">${esc(curtoEmp(empresaDe(f.obra))||f.obra||"Empresa não informada")} · ${fmtD(f.data)}</div>
-     <div class="meta"><span class="big">${pct(c.ind)}</span><span class="small muted">${30-c.sem}/30 itens marcados</span></div>
-     <div class="bar"><i style="width:${((30-c.sem)/30*100).toFixed(0)}%"></i></div>${(()=>{const m=movPend(f);return m.n?`<div class="small" style="color:var(--warn);font-weight:600">⚠ ${m.n} movimentaç${m.n===1?"ão":"ões"} a conferir</div>`:""})()}</button>`}).join("")}
+     <div class="meta"><span class="big">${pct(c.ind)}</span><span class="small muted">${N_ITENS-c.sem}/${N_ITENS} itens marcados</span></div>
+     <div class="bar"><i style="width:${((N_ITENS-c.sem)/N_ITENS*100).toFixed(0)}%"></i></div>${(()=>{const m=movPend(f);return m.n?`<div class="small" style="color:var(--warn);font-weight:600">⚠ ${m.n} movimentaç${m.n===1?"ão":"ões"} a conferir</div>`:""})()}</button>`}).join("")}
 
 const dis=()=>state.canWrite?"":"disabled";
 function fInp(path,label,val,type="text",extra=""){return `<label class="fld"><span>${label}</span><input class="inp" id="f-${path.replace(/\./g,"-")}" data-f="${path}" type="${type}" value="${esc(val??"")}" ${extra} ${dis()}></label>`}
@@ -531,7 +535,7 @@ function renderEditor(){
    <div class="card sec"><h2><span class="no">2</span>Checklist de auditoria</h2>
      <p class="hint">C conforme · P parcialmente conforme · NC não conforme · NA não aplicável. Clique de novo para desmarcar.</p>
      ${BLOCOS.map(b=>`<div class="blk"><div class="blk-h"><b><span class="letter">${b.k}</span>${esc(b.nome)}</b><span id="bi-${b.k}"></span></div>
-      ${Array.from({length:b.ate-b.de+1},(_,j)=>b.de+j).map(i=>`<div class="it" id="it-${i}"><span class="no">${i}</span><span class="tx">${esc(ITENS[i])}</span>
+      ${b.its.map(i=>`<div class="it" id="it-${i}"><span class="no">${i}</span><span class="tx">${esc(ITENS[i])}</span>
         <span class="seg" role="group" aria-label="Resultado do item ${i}">${["C","P","NC","NA"].map(v=>`<button type="button" data-item="${i}" data-v="${v}" aria-pressed="${(f.resp||{})[i]===v}" ${dis()}>${v}</button>`).join("")}</span>
         <span class="obs"><input class="inp" id="obs-${i}" data-obs="${i}" placeholder="Observações" value="${esc((f.obs||{})[i]||"")}" ${dis()}></span>
         </div>`).join("")}</div>`).join("")}</div>
@@ -568,7 +572,7 @@ function refreshCalc(f){
    ${BLOCOS.map(b=>{const o=c.blocos[b.k];return `<tr><td>${b.k}. ${esc(b.curto)}</td><td class="n">${o.C}</td><td class="n">${o.P}</td><td class="n">${o.NC}</td><td class="n">${o.NA}</td><td class="n">${o.ap}</td><td class="n">${heat(o.ind)}</td></tr>`}).join("")}
    <tr><td><b>Total</b></td><td class="n"><b>${c.C}</b></td><td class="n"><b>${c.P}</b></td><td class="n"><b>${c.NC}</b></td><td class="n"><b>${c.NA}</b></td><td class="n"><b>${c.ap}</b></td><td class="n">${heat(c.ind)}</td></tr></tbody></table>`;
   const temNc=new Set((f.ncs||[]).map(n=>String(n.item)));
-  for(let i=1;i<=30;i++){const v=(f.resp||{})[i];const sp=$("#an-"+i);if(!sp)continue;
+  for(const i of ITENS_ATIVOS){const v=(f.resp||{})[i];const sp=$("#an-"+i);if(!sp)continue;
     sp.innerHTML=(v==="NC"||v==="P")&&!temNc.has(String(i))&&state.canWrite?`<button class="btn sm" data-ncfrom="${i}">+ Registrar não conformidade do item ${i}</button>`:""}}
 
 /* ---------- persistência ---------- */
@@ -619,13 +623,13 @@ document.addEventListener("input",e=>{const t=e.target;const f=curF();if(!f)retu
 const rep={escopo:"todas"};
 const LINALL={},linAllUn={},linAllOk={};let linAllVer=0,mvTodasMemo={k:"",v:null};
 function garantirTodas(){if(!state.db)return;for(const c of Object.keys(MOV)){if(MOV[c].v!==2||linAllUn[c])continue;linAllOk[c]=false;LINALL[c]={};
-  linAllUn[c]=state.db.collection("movimentacoes/"+c+"/linhas").onSnapshot(snap=>{const o={};for(const d of snap.docs)o[d.id]={...structuredClone(d.data()),id:d.id};LINALL[c]=o;linAllOk[c]=true;linAllVer++;if(state.view==="relatorio"&&rep.escopo==="todas")softRender()},()=>{linAllOk[c]=true;linAllVer++;if(state.view==="relatorio")softRender()})}}
+  linAllUn[c]=state.db.collection("movimentacoes/"+c+"/linhas").onSnapshot(snap=>{const o={};for(const d of snap.docs)o[d.id]=legAdm({...structuredClone(d.data()),id:d.id});LINALL[c]=o;linAllOk[c]=true;linAllVer++;if(state.view==="relatorio"&&rep.escopo==="todas")softRender()},()=>{linAllOk[c]=true;linAllVer++;if(state.view==="relatorio")softRender()})}}
 const compsImp=()=>Object.keys(MOV).filter(c=>MOV[c].v===2).sort();
 const todasProntas=()=>compsImp().every(c=>linAllOk[c]);
 const todasFichas=()=>[...state.fichas].sort((a,b)=>(a.competencia||"").localeCompare(b.competencia||"")||(a.assistente||"").localeCompare(b.assistente||"","pt-BR"));
 function mvTodas(){const cs=compsImp();if(!cs.length)return null;const k=cs.join(",")+"|"+linAllVer;if(mvTodasMemo.k===k)return mvTodasMemo.v;
   const rows=cs.flatMap(c=>Object.values(LINALL[c]||{}).map(r=>({...r,comp:r.comp||c}))).sort((a,b)=>a.comp.localeCompare(b.comp)||a.empresa.localeCompare(b.empresa)||a.nome.localeCompare(b.nome,"pt-BR"));
-  const mk=(tipo,docs)=>({docs,flags:FLAGS.map(f=>({label:f.label,bom:f.bom})),rows:rows.filter(r=>r.tipo===tipo).map(r=>({id:r.comp+"/"+r.id,comp:r.comp,mat:r.matricula,obs:r.obs||"",adm:r.adm||"",just:r.just||{},obra:r.empresa,nome:r.nome,data:r.data,st:docs.map(d=>(r.st||{})[d.code]||""),fl:FLAGS.map(f=>(r.fl||{})[f.k]||"")}))});
+  const mk=(tipo,docs)=>({docs,flags:FLAGS.map(f=>({label:f.label,bom:f.bom})),rows:rows.filter(r=>r.tipo===tipo).map(r=>({id:r.comp+"/"+r.id,comp:r.comp,mat:r.matricula,obs:r.obs||"",adm:r.adm||"",funcao:r.funcao||"",just:r.just||{},obra:r.empresa,nome:r.nome,data:r.data,st:docs.map(d=>(r.st||{})[d.code]||""),fl:FLAGS.map(f=>(r.fl||{})[f.k]||"")}))});
   const ass={};for(const c of cs)Object.assign(ass,MOV[c].assistentes||{});
   const last=MOV[cs[cs.length-1]];
   const v={v:2,multi:true,comps:cs,arquivo:cs.length+" competência"+(cs.length>1?"s":""),importadoEm:last.importadoEm,auditor:last.auditor||"",assistentes:ass,empresas:{},adm:mk("adm",DOCS_ADM),dem:mk("dem",DOCS_DEM)};
@@ -644,7 +648,7 @@ function relatorioHTML(esco){esco=esco||rep.escopo;
   const obras=[...new Set(fs.map(f=>f.obra).filter(Boolean))].join(", ")||"—";
   const prevComp=todas?(compsR.length>1?compsR[0]:null):[...new Set(state.fichas.map(f=>f.competencia))].filter(c=>c<state.comp).sort().pop();
   // itens mais críticos
-  const itemStats=[];for(let i=1;i<=30;i++){let nc=0,p=0,ap=0;for(const f of fs){const r=(f.resp||{})[i];if(r==="NC")nc++;if(r==="P")p++;if(r&&r!=="NA")ap++}if(nc+p)itemStats.push({i,nc,p,ap})}
+  const itemStats=[];for(const i of ITENS_ATIVOS){let nc=0,p=0,ap=0;for(const f of fs){const r=(f.resp||{})[i];if(r==="NC")nc++;if(r==="P")p++;if(r&&r!=="NA")ap++}if(nc+p)itemStats.push({i,nc,p,ap})}
   itemStats.sort((a,b)=>b.nc-a.nc||b.p-a.p);
   const func=fs.flatMap(f=>(f.func||[]).map(p=>({...p,f})));
   const ncs=fs.flatMap(f=>(f.ncs||[]).map(n=>({...n,f}))).sort((a,b)=>({Alta:0,"Média":1,Baixa:2}[a.prioridade]??3)-({Alta:0,"Média":1,Baixa:2}[b.prioridade]??3));
@@ -664,7 +668,7 @@ function relatorioHTML(esco){esco=esco||rep.escopo;
    <section class="rsec"><h2>${N()}. Cobertura por empresa</h2>${coberturaTable(fs,mv,cl)}</section>
    ${todas&&compsR.length?`<section class="rsec"><h2>${N()}. Resumo por competência</h2>${resumoCompsHTML(compsR,fs,mv)}</section>`:""}
    <section class="rsec"><h2>${N()}. Metodologia</h2>
-     <p>Auditoria mensal: todas as pastas dos funcionários admitidos e desligados na competência são verificadas e conferidas. Cada um dos 30 itens do checklist, organizados em 5 blocos, recebe C (conforme), P (parcialmente conforme), NC (não conforme) ou NA (não aplicável). O índice é calculado como itens C ÷ (C + P + NC): o P não pontua e o NA fica fora do cálculo.</p>
+     <p>Auditoria mensal: todas as pastas dos funcionários admitidos e desligados na competência são verificadas e conferidas. Cada um dos ${N_ITENS} itens do checklist, organizados em ${BLOCOS.length} blocos, recebe C (conforme), P (parcialmente conforme), NC (não conforme) ou NA (não aplicável). O índice é calculado como itens C ÷ (C + P + NC): o P não pontua e o NA fica fora do cálculo.</p>
      <p class="small muted">Faixas: Ótimo ≥ 90% · Bom ≥ 75% · Atenção ≥ 60% · Crítico abaixo de 60%. Prazos de correção: Alta ${PRIOR.Alta.txt} · Média ${PRIOR["Média"].txt} · Baixa ${PRIOR.Baixa.txt}.</p></section>
    ${fs.length?`<section class="rsec"><h2>${N()}. Resultado por assistente</h2><div class="tw"><table><thead><tr>${todas?"<th>Competência</th>":""}<th>Assistente</th><th>Obra</th><th class="n">Pastas</th><th class="n">Geral</th>${BLOCOS.map(b=>`<th class="n">${b.k}</th>`).join("")}<th class="n">NC altas</th><th class="n">Reinc.</th><th>Classificação</th></tr></thead><tbody>
      ${k.cs.map(({f,c})=>{const r=reinc(f);return `<tr>${todas?`<td>${esc(compLabel(f.competencia))}</td>`:""}<td><b>${esc(f.assistente||"—")}</b></td><td>${esc(f.obra)}</td><td class="n">${esc(f.pastas||"—")}</td><td class="n">${heat(c.ind)}</td>${BLOCOS.map(b=>`<td class="n">${heat(c.blocos[b.k].ind)}</td>`).join("")}<td class="n">${c.ncAltas}</td><td class="n">${r==null?"—":r}</td><td>${pill(c.ind)}</td></tr>`}).join("")}</tbody></table></div>
@@ -695,15 +699,15 @@ function baixarHTML(){const css=document.querySelector("style").textContent;cons
 body{padding:24px 0}@media print{body{padding:0}.report{border:0;padding:0}.rsec{break-inside:avoid-page}}</style></head><body>${relatorioHTML(rep.escopo)}</body></html>`;
   salvar(`Relatorio_Conformidade_DP_${rep.escopo==="todas"?"todas":state.comp}.html`,html)}
 function baixarCSV(){const q=v=>'"'+String(v??"").replace(/"/g,'""')+'"';const todas=rep.escopo==="todas";const fs=todas?todasFichas():doComp();
-  const head=["Competência","Assistente","Obra","CNPJ","Auditor","Data","Tipo","Ativos","Pastas","Índice geral",...BLOCOS.map(b=>"Bloco "+b.k),"NC altas","NCs abertas","Sem marcação","Classificação",...Array.from({length:30},(_,i)=>"Item "+(i+1))];
+  const head=["Competência","Assistente","Obra","CNPJ","Auditor","Data","Tipo","Ativos","Pastas","Índice geral",...BLOCOS.map(b=>"Bloco "+b.k),"NC altas","NCs abertas","Sem marcação","Classificação",...ITENS_ATIVOS.map(i=>"Item "+i)];
   const lines=[head.map(q).join(";")];
-  for(const f of fs){const c=calc(f);lines.push([f.competencia,f.assistente,f.obra,f.cnpj,f.auditor,fmtD(f.data),tipoAud(f.tipo),f.ativos,f.pastas,pct(c.ind),...BLOCOS.map(b=>pct(c.blocos[b.k].ind)),c.ncAltas,c.ncAbertas,c.sem,faixa(c.ind)?.nome||"",...Array.from({length:30},(_,i)=>(f.resp||{})[i+1]||"")].map(q).join(";"))}
+  for(const f of fs){const c=calc(f);lines.push([f.competencia,f.assistente,f.obra,f.cnpj,f.auditor,fmtD(f.data),tipoAud(f.tipo),f.ativos,f.pastas,pct(c.ind),...BLOCOS.map(b=>pct(c.blocos[b.k].ind)),c.ncAltas,c.ncAbertas,c.sem,faixa(c.ind)?.nome||"",...ITENS_ATIVOS.map(i=>(f.resp||{})[i]||"")].map(q).join(";"))}
   lines.push("");lines.push(["Movimentação","Funcionário","Matrícula","Data","Documentação","Pendências","Assistente","Obra"].map(q).join(";"));
   for(const f of fs)for(const p of f.func||[])lines.push([p.mov,p.nome,p.matricula,fmtD(p.data),p.docs,p.pendencias,f.assistente,f.obra].map(q).join(";"));
   lines.push("");lines.push(["Item","Prioridade","Falha","Funcionário/processo","Prazo","Situação","Data da correção","Assistente"].map(q).join(";"));
   for(const f of fs)for(const n of f.ncs||[])lines.push([n.item,n.prioridade,n.falha,n.funcionario,fmtD(n.prazo),n.situacao,fmtD(n.correcao),f.assistente].map(q).join(";"));
-  const mvx=todas?mvTodas():mvAtual();if(mvx&&mvx.adm){lines.push("");lines.push(["Tipo","Competência","Empresa","Colaborador","Matrícula","Admissão","Desligamento","Índice","Documentos NC","Documentos P","Pasta localizada","Observações","Justificativas NA"].map(q).join(";"));
-    for(const [tp,blk] of [["Admissão",mvx.adm],["Desligamento",mvx.dem]])for(const r of blk.rows){const c=rc(r);lines.push([tp,compLabel(r.comp),r.obra,r.nome,r.mat||"",tp==="Admissão"?fmtD(r.data):fmtD(r.adm),tp==="Admissão"?"":fmtD(r.data),pct(c.ind),pend(blk,r,"NC").join(", "),pend(blk,r,"P").join(", "),r.fl[0]||"",r.obs||"",blk.docs.map((d,k)=>r.st[k]==="NA"?d.label+": "+((r.just||{})[d.code]||"sem justificativa"):null).filter(Boolean).join("; ")].map(q).join(";"))}}
+  const mvx=todas?mvTodas():mvAtual();if(mvx&&mvx.adm){lines.push("");lines.push(["Tipo","Competência","Empresa","Colaborador","Função","Matrícula","Admissão","Desligamento","Índice","Documentos NC","Documentos P","Pasta localizada","Observações","Justificativas NA"].map(q).join(";"));
+    for(const [tp,blk] of [["Admissão",mvx.adm],["Desligamento",mvx.dem]])for(const r of blk.rows){const c=rc(r);lines.push([tp,compLabel(r.comp),r.obra,r.nome,r.funcao||"",r.mat||"",tp==="Admissão"?fmtD(r.data):fmtD(r.adm),tp==="Admissão"?"":fmtD(r.data),pct(c.ind),pend(blk,r,"NC").join(", "),pend(blk,r,"P").join(", "),r.fl[0]||"",r.obs||"",blk.docs.map((d,k)=>r.st[k]==="NA"?d.label+": "+((r.just||{})[d.code]||"sem justificativa"):null).filter(Boolean).join("; ")].map(q).join(";"))}}
   salvar(`Auditoria_DP_${todas?"todas":state.comp}.csv`,"﻿"+lines.join("\r\n"))}
 
 /* ---------- HISTÓRICO ---------- */
@@ -763,7 +767,19 @@ function parseResumo(X,ws){const out={assistentes:{},competencia:"",dataAuditori
   if(hi>=0)for(let r=hi+1;r<rows.length;r++){const row=rows[r]||[];if(!row[0])break;const o=String(row[0]).trim(),a=String(row[1]??"").trim();if(a&&!/^=/.test(a))out.assistentes[o]=a}
   return out}
 /* ---------- importação: lista de funcionários (admissão/demissão) e/ou abas Matriz ---------- */
-const DOCS_ADM=[["A1","CTPS digital"],["A2","Documentos pessoais"],["A3","Ficha de registro"],["A4","Contrato (trabalho/experiência)"],["A5","ASO admissional"],["A6","Conta bancária"],["A7","Vale-transporte"],["A8","Acordo de compensação de horas"],["A9","Declaração de dependentes"],["A10","Termos de benefícios"]].map(([code,label])=>({code,label}));
+const DOCS_ADM=[
+ ...[["PE1","RG / CPF"],["PE2","CTPS Digital"],["PE3","Comprovante de Residência"],["PE4","Dados Bancários"],["PE5","Cartão de Vacina"]].map(([code,label])=>({code,label,g:"Documentos pessoais"})),
+ ...[["AD1","Ficha de Registro"],["AD2","Contrato de Trabalho"],["AD3","Acordo de Compensação de Horas"],["AD4","Declaração de Dependentes"],["AD5","Termo de Ciência de Entrega de Atestados"],["AD6","Termo de Medidas Disciplinares"],["AD7","ASO Admissional"],["AD8","Declaração Plano Odontológico Clin"],["AD9","Declaração Seguro de Vida"],["AD10","Declaração Inclusão Plano Bradesco"],["AD11","Acordo Individual de Banco de Horas"]].map(([code,label])=>({code,label,g:"Documentos admissionais"}))];
+/* documentos que só se aplicam a alguns casos (os demais colaboradores não veem o item) */
+const EMP_SEGURO=new Set(["RIO AVE CARNEIROS 01 SPE LTDA.","RIO AVE INVESTIMENTOS LTDA","RIO AVE SUBHOLDING INCORPORACAO LTDA"]),EMP_BH=new Set(["RIO AVE INVESTIMENTOS LTDA","RIO AVE SUBHOLDING INCORPORACAO LTDA"]);
+const cargoAdm=r=>r.admin===undefined?/GERAL|ADMIN/i.test(r.depto||""):!!r.admin;
+Object.assign(DOCS_ADM.find(d=>d.code==="AD9"),{nota:"Aplica-se a: Rio Ave Carneiros 01, Rio Ave Investimentos e Rio Ave Subholding Incorporação.",cond:r=>state.base!=="rioave"||EMP_SEGURO.has(r.empresa)});
+Object.assign(DOCS_ADM.find(d=>d.code==="AD10"),{nota:"Aplica-se a cargos administrativos (veja “Cargo administrativo?” acima).",cond:r=>cargoAdm(r)});
+Object.assign(DOCS_ADM.find(d=>d.code==="AD11"),{nota:"Aplica-se a: Rio Ave Investimentos e Rio Ave Subholding Incorporação.",cond:r=>state.base!=="rioave"||EMP_BH.has(r.empresa)});
+const docsRow=r=>r.tipo==="adm"?DOCS_ADM.filter(d=>!d.cond||d.cond(r)):DOCS_DEM;
+/* marcações do checklist antigo que têm correspondente exato no novo (as demais precisam ser refeitas) */
+const LEG_ADM={A1:"PE2",A3:"AD1",A4:"AD2",A5:"AD7",A6:"PE4",A8:"AD3",A9:"AD4"};
+function legAdm(r){if(r&&r.tipo==="adm"&&r.st&&!r.migAdm){for(const [o,n] of Object.entries(LEG_ADM))if(r.st[o]&&!r.st[n])r.st[n]=r.st[o];r.migAdm=1}return r}
 const DOCS_DEM=[["D1","TRCT"],["D2","Aviso / comunicação do desligamento"],["D3","ASO demissional (guia/ASO)"],["D4","Cartão ponto"],["D5","Comprovante de pagamento"],["D6","Canhoto do seguro-desemprego"]].map(([code,label])=>({code,label}));
 const FLAGS=[
  {k:"pasta",label:"Pasta localizada",bom:"Sim",q:"A pasta do colaborador foi localizada?",d:"Sim = encontrada. Não = pasta ausente."},
@@ -778,26 +794,26 @@ const keyN=(tipo,emp,nome)=>tipo+"|"+emp+"|"+norm(nome).replace(/\s+/g," ");
 function mvAtual(){const m=MOV[state.comp];if(!m)return null;if(m.v!==2)return m;
   const k=state.comp+"|"+linVer+"|"+(m.importadoEm||"")+"|"+JSON.stringify(m.assistentes||{});if(mvMemo.k===k)return mvMemo.v;
   const rows=Object.values(LIN).sort((a,b)=>a.empresa.localeCompare(b.empresa)||a.nome.localeCompare(b.nome,"pt-BR"));
-  const mk=(tipo,docs)=>({docs,flags:FLAGS.map(f=>({label:f.label,bom:f.bom})),rows:rows.filter(r=>r.tipo===tipo).map(r=>({id:r.id,comp:r.comp||state.comp,mat:r.matricula,obs:r.obs||"",adm:r.adm||"",just:r.just||{},obra:r.empresa,nome:r.nome,data:r.data,st:docs.map(d=>(r.st||{})[d.code]||""),fl:FLAGS.map(f=>(r.fl||{})[f.k]||"")}))});
+  const mk=(tipo,docs)=>({docs,flags:FLAGS.map(f=>({label:f.label,bom:f.bom})),rows:rows.filter(r=>r.tipo===tipo).map(r=>({id:r.id,comp:r.comp||state.comp,mat:r.matricula,obs:r.obs||"",adm:r.adm||"",funcao:r.funcao||"",just:r.just||{},obra:r.empresa,nome:r.nome,data:r.data,st:docs.map(d=>(r.st||{})[d.code]||""),fl:FLAGS.map(f=>(r.fl||{})[f.k]||"")}))});
   const v={...m,adm:mk("adm",DOCS_ADM),dem:mk("dem",DOCS_DEM),empresas:{}};mvMemo={k,v};return v}
 function subLinhas(){if(!state.db||linComp===state.comp)return;linUnsub&&linUnsub();for(const k in LIN)delete LIN[k];linVer++;linLoaded=false;linComp=state.comp;const comp=state.comp;
   linUnsub=state.db.collection("movimentacoes/"+comp+"/linhas").onSnapshot(snap=>{if(comp!==linComp)return;const ids=new Set();
-    for(const d of snap.docs){ids.add(d.id);if(dirtyRows.has(d.id))continue;LIN[d.id]={...structuredClone(d.data()),id:d.id}}
+    for(const d of snap.docs){ids.add(d.id);if(dirtyRows.has(d.id))continue;LIN[d.id]=legAdm({...structuredClone(d.data()),id:d.id})}
     for(const k of Object.keys(LIN))if(!ids.has(k)&&!dirtyRows.has(k))delete LIN[k];linVer++;linLoaded=true;softRender()},()=>{linLoaded=true;softRender()})}
 function softRender(){const a=document.activeElement;if(state.view==="fichas"&&$("#editor")?.contains(a)){const f=curF();if(f)refreshCalc(f);return}
   if(a&&(a.dataset.obsrow||a.dataset.assist||a.dataset.mf==="q"))return;render();if(movF.card&&!cardRoot.contains(document.activeElement))renderCard()}
 
 function parseLista(X,wb){for(const n of wb.SheetNames){const rows=X.utils.sheet_to_json(wb.Sheets[n],{header:1,raw:true,defval:null});
   const hi=rows.findIndex(r=>r&&r.some(v=>norm(v)==="nome do funcionario"));if(hi<0)continue;const H=rows[hi].map(norm);const ix=k=>H.indexOf(k);
-  const c={cod:ix("empresa"),emp:ix("nome da empresa"),mat:ix("funcionario"),nome:ix("nome do funcionario"),dep:ix("departamento"),adm:ix("admissao"),dem:ix("demissao")};
+  const c={cod:ix("empresa"),emp:ix("nome da empresa"),mat:ix("funcionario"),nome:ix("nome do funcionario"),dep:ix("departamento"),fun:ix("funcao"),adm:ix("admissao"),dem:ix("demissao")};
   if(c.emp<0||(c.adm<0&&c.dem<0))continue;const out=[];
   for(const r of rows.slice(hi+1)){if(!r)continue;const nome=String(r[c.nome]??"").trim(),emp=String(r[c.emp]??"").trim();if(!nome||!emp)continue;
-    out.push({codEmp:c.cod>=0?String(r[c.cod]??"").trim():"",empresa:emp,matricula:c.mat>=0?String(r[c.mat]??"").trim():"",nome,depto:c.dep>=0?String(r[c.dep]??"").trim():"",adm:c.adm>=0?cellIso(X,r[c.adm]):"",dem:c.dem>=0?cellIso(X,r[c.dem]):""})}
+    out.push({codEmp:c.cod>=0?String(r[c.cod]??"").trim():"",empresa:emp,matricula:c.mat>=0?String(r[c.mat]??"").trim():"",nome,depto:c.dep>=0?String(r[c.dep]??"").trim():"",funcao:c.fun>=0?String(r[c.fun]??"").trim():"",adm:c.adm>=0?cellIso(X,r[c.adm]):"",dem:c.dem>=0?cellIso(X,r[c.dem]):""})}
   return {sheet:n,rows:out}}return null}
 function movimentosDe(lista,comp){const fim=fimMes(comp);const rows=[],ativos={},fora=new Set();
   for(const p of lista){const e=empresaDe(p.empresa);if(!e){if(p.adm.startsWith(comp)||p.dem.startsWith(comp))fora.add(p.empresa);continue}
     if(p.adm&&p.adm<=fim&&(!p.dem||p.dem>fim))ativos[e]=(ativos[e]||0)+1;
-    const base={empresa:e,codEmp:p.codEmp,matricula:p.matricula,nome:p.nome,depto:p.depto,adm:p.adm};
+    const base={empresa:e,codEmp:p.codEmp,matricula:p.matricula,nome:p.nome,depto:p.depto,funcao:p.funcao,adm:p.adm};
     if(p.adm.startsWith(comp))rows.push({...base,tipo:"adm",data:p.adm,id:slug("adm-"+(p.codEmp||e)+"-"+(p.matricula||p.nome))});
     if(p.dem.startsWith(comp))rows.push({...base,tipo:"dem",data:p.dem,id:slug("dem-"+(p.codEmp||e)+"-"+(p.matricula||p.nome))})}
   return {rows,ativos,fora:[...fora]}}
@@ -834,19 +850,27 @@ async function salvarImport(){const d=imp.pend;if(!d)return;if(!state.db){imp.er
     else{novos=Object.values(exist);if(!novos.length)throw new Error("Importe primeiro a lista de funcionários desta competência; as abas Matriz só completam as marcações.")}
     let n=0;const ids=new Set(novos.map(r=>r.id));
     for(const r of novos){const ex=exist[r.id];const lg=leg.get(keyN(r.tipo,r.empresa,r.nome));
-      const row={tipo:r.tipo,empresa:r.empresa,codEmp:r.codEmp||"",matricula:r.matricula||"",nome:r.nome,depto:r.depto||"",data:r.data||"",adm:r.adm||ex?.adm||"",just:ex?.just||{},comp,
+      const row={tipo:r.tipo,empresa:r.empresa,codEmp:r.codEmp||"",matricula:r.matricula||"",nome:r.nome,depto:r.depto||"",data:r.data||"",adm:r.adm||ex?.adm||"",funcao:r.funcao||ex?.funcao||"",just:ex?.just||{},...(ex&&ex.admin!==undefined?{admin:ex.admin}:{}),...(ex&&ex.migAdm?{migAdm:1}:{}),comp,
         st:{...(ex?.st||{}),...(lg&&(!ex||!d.lista)?lg.st:{})},fl:{...(ex?.fl||{}),...(lg&&(!ex||!d.lista)?lg.fl:{})},obs:ex?.obs||"",em:new Date().toISOString()};
       await db.doc(path+"/"+r.id).set(row);n++;if(n%5===0){imp.salvando=`Salvando ${n} de ${novos.length}…`;rMov()}}
     const total=new Set([...Object.keys(exist),...novos.map(r=>r.id)]).size;
     const assist={};const oa=(old&&old.assistentes)||{};for(const [o,a] of Object.entries(oa)){const e=empresaDe(o)||o;if(a)assist[e]=a}
     for(const [o,a] of Object.entries(d.matriz?.assistentes||{})){const e=empresaDe(o);if(e&&a)assist[e]=a}
+    const comMov=new Set([...novos.map(r=>r.empresa),...Object.values(exist).map(r=>r.empresa)]);
     const arqs=[...(old?.arquivos||(old?.arquivo?[{nome:old.arquivo,em:old.importadoEm||""}]:[]))];if(d.lista){const i0=arqs.findIndex(a=>a.nome===d.arquivo);const it={nome:d.arquivo,em:new Date().toISOString(),n:novos.length};if(i0>=0)arqs[i0]=it;else arqs.push(it)}
-    const meta={v:2,competencia:comp,arquivo:[...new Set(arqs.map(a=>a.nome))].join(" + ")||d.arquivo,arquivos:arqs,importadoEm:new Date().toISOString(),auditor:d.matriz?.auditor||old?.auditor||"",assistentes:assist,ativos,fora,total};
+    const meta={v:2,competencia:comp,arquivo:[...new Set(arqs.map(a=>a.nome))].join(" + ")||d.arquivo,arquivos:arqs,importadoEm:new Date().toISOString(),auditor:d.matriz?.auditor||old?.auditor||"",assistentes:assist,ativos,fora,total,semMov:(old?.semMov||[]).filter(e=>!comMov.has(e))};
     await db.doc("movimentacoes/"+comp).set(meta);MOV[comp]=meta;imp.pend=null;imp.salvando="";
     imp.ok=`Importação salva: ${novos.length} movimentações lidas em ${compLabel(comp)}, somadas às anteriores (total: ${total})${leg.size?" · marcações da planilha de auditoria aplicadas":""}.`;
     if(state.comp!==comp){state.comp=comp;$("#comp").value=comp;try{localStorage.setItem("dp-comp",comp)}catch(_){}}render()}
   catch(e){imp.salvando="";imp.erro=e&&e.code==="quota_exceeded"?"Armazenamento cheio.":e&&e.code==="invalid_argument"?"Você não tem permissão para salvar importações nesta página.":(e&&e.message)||"Não foi possível salvar a importação.";rMov()}}
 
+/* ---------- flag: empresa sem movimentação na competência ---------- */
+async function setSemMov(emp,val){if(!state.canWrite||!state.db)return;const comp=state.comp,old=MOV[comp];
+  const arr=[...new Set([...(old?.semMov||[]),...(val?[emp]:[])])].filter(e=>val||e!==emp);
+  MOV[comp]={...(old||{v:2,competencia:comp,arquivo:"",arquivos:[],importadoEm:new Date().toISOString(),auditor:"",assistentes:{},ativos:{},fora:[],total:0}),semMov:arr};linVer++;render();
+  try{if(old)await state.db.doc("movimentacoes/"+comp).update({semMov:arr});else await state.db.doc("movimentacoes/"+comp).set(MOV[comp])}
+  catch(e){imp.erro="Não foi possível salvar a marcação de empresa sem movimentação.";render()}}
+document.addEventListener("change",e=>{const t=e.target;if(t&&t.dataset&&t.dataset.semmov!=null)setSemMov(t.dataset.semmov,t.checked)});
 function rc(r){const o={C:0,P:0,NC:0,NA:0};for(const x of r.st)if(o[x]!=null)o[x]++;o.ap=o.C+o.P+o.NC;o.ind=o.ap?o.C/o.ap:null;return o}
 function agrega(rows){const o={n:rows.length,C:0,P:0,NC:0,NA:0};for(const r of rows){const c=rc(r);o.C+=c.C;o.P+=c.P;o.NC+=c.NC;o.NA+=c.NA}o.ap=o.C+o.P+o.NC;o.ind=o.ap?o.C/o.ap:null;return o}
 const pend=(blk,r,v)=>blk.docs.filter((d,i)=>r.st[i]===v).map(d=>d.label);
@@ -877,14 +901,14 @@ function setRow(id,fn,quiet){const r=LIN[id];if(!r||!state.canWrite)return;fn(r)
 async function saveRow(r){const {id,...b}=r;try{await state.db.doc(`movimentacoes/${r.comp}/linhas/${id}`).set(JSON.parse(JSON.stringify(b)))}
   catch(e){imp.erro="Não foi possível salvar a última marcação. Tente de novo.";rMov()}finally{dirtyRows.delete(id)}}
 const docsT=t=>t==="adm"?DOCS_ADM:DOCS_DEM;
-function rowStat(r){const ds=docsT(r.tipo);const o={C:0,P:0,NC:0,NA:0,vazio:0};for(const d of ds){const v=(r.st||{})[d.code];if(o[v]!=null)o[v]++;else o.vazio++}o.ap=o.C+o.P+o.NC;o.ind=o.ap?o.C/o.ap:null;o.ok=o.vazio===0;return o}
+function rowStat(r){const ds=docsRow(r);const o={C:0,P:0,NC:0,NA:0,vazio:0};for(const d of ds){const v=(r.st||{})[d.code];if(o[v]!=null)o[v]++;else o.vazio++}o.ap=o.C+o.P+o.NC;o.ind=o.ap?o.C/o.ap:null;o.ok=o.vazio===0;return o}
 function fichaDe(e){return state.fichas.find(x=>x.competencia===state.comp&&(x.obra===e||empresaDe(x.obra)===e))}
 function rMov(){
   const el=$("#v-movimentacoes");const m=MOV[state.comp];const v2=m&&m.v===2;const mv=mvAtual();
   const sx=$("#mxw")?.scrollLeft||0;
   let h=`<div class="vhead"><div><div class="eyebrow">Competência ${esc(compLabel(state.comp))}</div><h1>Movimentações do mês</h1></div></div>
-   <div class="drop" id="drop"><div><b>${v2?"Lista importada: "+esc(m.arquivo||"")+" · "+fmtD((m.importadoEm||"").slice(0,10)):"Importar movimentações (.xlsx)"}</b><div class="small muted">Lista de funcionários com as colunas Nome da Empresa, Funcionário, Nome do Funcionário, Admissão e Demissão. Entram as admissões e demissões da competência. Uma planilha com abas Matriz também pode ser importada para trazer marcações já feitas.</div></div>
-     <label class="btn ${v2?"":"primary"}" for="xlsx-in">${imp.lendo?"Lendo…":v2?"Importar nova lista":"Escolher arquivo"}</label><input id="xlsx-in" type="file" accept=".xlsx,.xlsm,.xls" hidden ${state.canWrite?"":"disabled"}></div>`;
+   <div class="drop" id="drop"><div><b>${v2&&m.arquivo?"Lista importada: "+esc(m.arquivo||"")+" · "+fmtD((m.importadoEm||"").slice(0,10)):"Importar movimentações (.xlsx)"}</b><div class="small muted">Lista de funcionários com as colunas Nome da Empresa, Funcionário, Nome do Funcionário, Admissão e Demissão. Entram as admissões e demissões da competência. Uma planilha com abas Matriz também pode ser importada para trazer marcações já feitas.</div></div>
+     <label class="btn ${v2&&m.arquivo?"":"primary"}" for="xlsx-in">${imp.lendo?"Lendo…":v2&&m.arquivo?"Importar nova lista":"Escolher arquivo"}</label><input id="xlsx-in" type="file" accept=".xlsx,.xlsm,.xls" hidden ${state.canWrite?"":"disabled"}></div>`;
   if(imp.erro)h+=`<div class="banner" style="background:var(--bad-soft);color:var(--bad)">${esc(imp.erro)}</div>`;
   if(imp.ok)h+=`<div class="banner" style="background:var(--ok-soft);color:var(--ok)">${esc(imp.ok)}</div>`;
   if(imp.pend){const d=imp.pend;let resumo="";
@@ -933,7 +957,7 @@ function rMov(){
     <label class="fld"><span>Buscar</span><input class="inp" id="mf-q" data-mf="q" value="${esc(movF.q)}" placeholder="Nome ou matrícula"></label></div>
    <div class="small muted">${lst.length} colaboradores · ${lst.filter(([,s])=>s.ok).length} conferidos</div>
    <div class="tw" id="mxw"><table class="mv"><thead><tr><th>Colaborador</th>${tipo==="dem"?"<th>Admissão</th><th>Demissão</th>":"<th>Admissão</th>"}<th class="n">Índice</th><th>Situação</th></tr></thead><tbody>
-   ${lst.map(([r,s])=>`<tr class="click" data-card="${esc(r.id)}"><td><button class="linkbtn" aria-haspopup="dialog"><b>${esc(r.nome)}</b></button><div class="small muted">${esc(curtoEmp(r.empresa))}${r.matricula?" · mat. "+esc(r.matricula):""}${r.depto?" · "+esc(r.depto):""}</div></td>${tipo==="dem"?`<td class="num">${fmtD(r.adm)}</td>`:""}<td class="num">${fmtD(r.data)}</td>
+   ${lst.map(([r,s])=>`<tr class="click" data-card="${esc(r.id)}"><td><button class="linkbtn" aria-haspopup="dialog"><b>${esc(r.nome)}</b></button><div class="small muted">${r.funcao?`<b>${esc(r.funcao)}</b> · `:""}${esc(curtoEmp(r.empresa))}${r.matricula?" · mat. "+esc(r.matricula):""}${r.depto?" · "+esc(r.depto):""}</div></td>${tipo==="dem"?`<td class="num">${fmtD(r.adm)}</td>`:""}<td class="num">${fmtD(r.data)}</td>
       <td class="n">${heat(s.ind)}</td><td>${s.ok?(s.P+s.NC?`<span class="pill p-atencao">${s.NC} NC · ${s.P} P</span>`:'<span class="pill p-otimo">Completa</span>'):`<span class="pill p-none">${s.vazio} a marcar</span>`}</td></tr>`).join("")||`<tr><td colspan="5" class="muted">Nenhum colaborador com esses filtros.</td></tr>`}
    </tbody></table></div></div>`;
   const blk=mv[tipo];
@@ -954,8 +978,8 @@ function fecharCard(){if(!movF.card&&cardRoot.hidden)return;const id=movF.card;m
 function irCard(d){const ids=movF.ids||[];const i=ids.indexOf(movF.card);const j=i+d;if(i<0||j<0||j>=ids.length){if(j>=ids.length)fecharCard();return}
   movF.card=ids[j];renderCard();cardRoot.scrollTop=0;cardRoot.querySelector(".pcard")?.focus();document.querySelector(`tr[data-card="${CSS.escape(movF.card)}"]`)?.scrollIntoView({block:"nearest"})}
 function renderCard(){const id=movF.card;const r=id&&LIN[id];if(!r){fecharCard();return}
-  const ds=docsT(r.tipo),s=rowStat(r),ids=movF.ids||[],pos=ids.indexOf(id),w=state.canWrite?"":"disabled";
-  const meta=[r.tipo==="adm"?"Admissão "+fmtD(r.data):"Admissão "+fmtD(r.adm)+" · Desligamento "+fmtD(r.data),r.matricula?"mat. "+r.matricula:"",r.depto||""].filter(Boolean).map(esc).join(" · ");
+  const ds=docsRow(r),s=rowStat(r),ids=movF.ids||[],pos=ids.indexOf(id),w=state.canWrite?"":"disabled";
+  const meta=[r.funcao||"",r.tipo==="adm"?"Admissão "+fmtD(r.data):"Admissão "+fmtD(r.adm)+" · Desligamento "+fmtD(r.data),r.matricula?"mat. "+r.matricula:"",r.depto||""].filter(Boolean).map(esc).join(" · ");
   const sx=cardRoot.scrollTop;
   cardRoot.innerHTML=`<div class="pcard" tabindex="-1">
    <header class="pcard-h"><div style="min-width:0"><div class="eyebrow">${r.tipo==="adm"?"Conferência admissional":"Conferência demissional"} · ${esc(curtoEmp(r.empresa))}</div><h2>${esc(r.nome)}</h2><div class="muted small">${meta}</div></div>
@@ -964,8 +988,8 @@ function renderCard(){const id=movF.card;const r=id&&LIN[id];if(!r){fecharCard()
      <button class="btn ghost" data-cclose aria-label="Fechar">✕</button></div></header>
    <div class="pcard-b">
     <section><div class="row" style="justify-content:space-between"><h3>Indicadores</h3>${s.vazio&&state.canWrite?`<button class="btn sm" data-callc title="Marca como C os documentos ainda sem marcação">Restantes = C</button>`:""}</div>
-     <p class="hint">C conforme · P parcial · NC não conforme · NA não se aplica. Clique de novo para desmarcar.</p>
-     <div>${ds.map(d=>{const v=(r.st||{})[d.code]||"";return `<div class="dk"><span class="cd">${d.code}</span><span>${esc(d.label)}${jnoteHTML(r,d)}</span><span class="seg" role="group" aria-label="${esc(d.label)}">${["C","P","NC","NA"].map(o=>`<button type="button" data-cst="${d.code}" data-v="${o}" aria-pressed="${v===o}" ${w}>${o}</button>`).join("")}</span></div>`}).join("")}</div></section>
+     <p class="hint">C conforme · P parcial · NC não conforme · NA não se aplica. Clique de novo para desmarcar.</p>${r.tipo==="adm"?`<div class="fld flg" style="margin:6px 0 8px"><span class="q">Cargo administrativo?</span><span class="d">Define se a Declaração de Inclusão no Plano Bradesco se aplica a este colaborador${r.funcao?" (função: "+esc(r.funcao)+")":""}${r.admin===undefined?" (sugestão pelo departamento: "+(cargoAdm(r)?"Sim":"Não")+")":""}.</span><span class="seg2">${["Sim","Não"].map(o=>`<button type="button" data-cadm="${o}" aria-pressed="${cargoAdm(r)===(o==="Sim")}" ${w}>${o}</button>`).join("")}</span></div>`:""}
+     <div>${(()=>{let g0="";return ds.map(d=>{const v=(r.st||{})[d.code]||"";const gh=d.g&&d.g!==g0?(g0=d.g,`<h4 class="grp">${esc(d.g)}</h4>`):"";return gh+`<div class="dk"><span class="cd">${d.code}</span><span>${esc(d.label)}${d.nota?`<div class="dnota">${esc(d.nota)}</div>`:""}${jnoteHTML(r,d)}</span><span class="seg" role="group" aria-label="${esc(d.label)}">${["C","P","NC","NA"].map(o=>`<button type="button" data-cst="${d.code}" data-v="${o}" aria-pressed="${v===o}" ${w}>${o}</button>`).join("")}</span></div>`}).join("")})()}</div></section>
     <section><h3>Pasta e organização</h3><p class="hint">Responda cada pergunta com Sim ou Não. A resposta fica <b class="g">verde</b> quando está regular e <b class="r">vermelha</b> quando é uma ocorrência a corrigir.</p><div class="det2">${FLAGS.map(f=>{const v=(r.fl||{})[f.k]||"";return `<div class="fld flg"><span class="q">${esc(f.q)}</span><span class="d">${esc(f.d)}</span><span class="seg2">${["Sim","Não"].map(o=>`<button type="button" data-cflag="${f.k}" data-val="${o}" aria-pressed="${v===o}" class="${v===o?(o===f.bom?"good":"bad"):""}" ${w}>${o}</button>`).join("")}</span></div>`}).join("")}</div></section>
     <section><h3>Observações</h3><textarea class="inp" id="card-obs" data-obsrow="${esc(id)}" rows="4" placeholder="Ex.: TRCT sem assinatura, ASO na pasta de outro funcionário" ${w}>${esc(r.obs||"")}</textarea></section>
    </div>
@@ -1000,6 +1024,7 @@ document.addEventListener("click",e=>{
   if(t.hasAttribute("data-cclose")){fecharCard();return}
   if(t.dataset.cnav){irCard(+t.dataset.cnav);return}
   if(!state.canWrite)return;
+  if(t.dataset.cadm){const v=t.dataset.cadm==="Sim";marcaCard(r=>{r.admin=v},`[data-cadm="${t.dataset.cadm}"]`);return}
   if(t.dataset.jedit){abrirJust(t.dataset.jedit);return}
   if(t.dataset.cst){const c=t.dataset.cst,v=t.dataset.v;const atual=((LIN[movF.card]||{}).st||{})[c]||"";if(v==="NA"&&atual!=="NA"){abrirJust(c);return}
     marcaCard(r=>{r.st=r.st||{};if(r.st[c]===v){delete r.st[c];if(r.just)delete r.just[c]}else{r.st[c]=v;if(r.just)delete r.just[c]}},`[data-cst="${c}"][data-v="${v}"]`);return}
@@ -1010,7 +1035,7 @@ document.addEventListener("click",e=>{
     state.db.doc(`movimentacoes/${r.comp}/linhas/${id}`).delete().then(()=>{},()=>{imp.erro="Não foi possível remover o colaborador.";rMov()});
     delete LIN[id];linVer++;const ids=movF.ids||[],i=ids.indexOf(id);movF.ids=ids.filter(x=>x!==id);
     if(movF.ids.length){movF.card=movF.ids[Math.min(i,movF.ids.length-1)];renderCard()}else fecharCard();rMov();return}
-  if(t.hasAttribute("data-callc")){marcaCard(r=>{r.st=r.st||{};for(const d of docsT(r.tipo))if(!r.st[d.code])r.st[d.code]="C"});return}
+  if(t.hasAttribute("data-callc")){marcaCard(r=>{r.st=r.st||{};for(const d of docsRow(r))if(!r.st[d.code])r.st[d.code]="C"});return}
 });
 document.addEventListener("keydown",e=>{if(!movF.card)return;
   if(just.open){if(e.key==="Escape"){e.preventDefault();fecharJust()}return}
@@ -1040,7 +1065,7 @@ document.addEventListener("click",async e=>{
   if(t.dataset.tipo){movF.tipo=t.dataset.tipo;movF.open=null;rMov();return}
   if(t.dataset.femp!=null){movF.emp=movF.emp===t.dataset.femp?"":t.dataset.femp;rMov();$("#mxw")?.scrollIntoView({behavior:"smooth",block:"start"});return}
   if(t.dataset.exp){movF.open=movF.open===t.dataset.exp?null:t.dataset.exp;rMov();return}
-  if(t.dataset.allc){setRow(t.dataset.allc,r=>{r.st=r.st||{};for(const d of docsT(r.tipo))if(!r.st[d.code])r.st[d.code]="C"});return}
+  if(t.dataset.allc){setRow(t.dataset.allc,r=>{r.st=r.st||{};for(const d of docsRow(r))if(!r.st[d.code])r.st[d.code]="C"});return}
   if(t.dataset.flag){const [id,k]=t.dataset.flag.split("|");const v=t.dataset.val;setRow(id,r=>{r.fl=r.fl||{};if(r.fl[k]===v)delete r.fl[k];else r.fl[k]=v});return}
   if(t.dataset.gerar){const alvo=t.dataset.gerar==="*"?EMPRESAS.filter(x=>Object.values(LIN).some(r=>r.empresa===x)):[t.dataset.gerar];for(const x of alvo)gerarFicha(x);imp.ok=`Ficha${alvo.length>1?"s":""} preenchida${alvo.length>1?"s":""} a partir das movimentações: ${alvo.map(curtoEmp).join(", ")}.`;render();return}
   if(t.dataset.act==="imp-ok")return salvarImport();
@@ -1062,8 +1087,8 @@ let mfT;document.addEventListener("input",e=>{const t=e.target;
   if(t.dataset.mf==="q"){clearTimeout(mfT);mfT=setTimeout(()=>{rMov();const q=$("#mf-q");if(q){q.focus();q.setSelectionRange(q.value.length,q.value.length)}},250)}else rMov()});
 
 /* ---------- preenchimento automático da ficha ---------- */
-const ESSENC=new Set(["A1","A3","A4","A5","D1","D3"]);
-const ITEM_DOC={A4:9,A5:11,A10:12,D1:22,D2:22,D3:21,D4:21,D5:23,D6:23};
+const ESSENC=new Set(["PE2","AD1","AD2","AD7","D1","D3"]);
+const ITEM_DOC={AD2:9,AD7:11,D1:21,D2:21,D3:21,D4:21,D5:23,D6:23};
 const rowsEmp=e=>Object.values(LIN).filter(r=>r.empresa===e);
 function sigEmp(e){const s=JSON.stringify(rowsEmp(e).sort((a,b)=>a.id<b.id?-1:1).map(r=>[r.id,r.st||{},r.fl||{}]));let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return String(h)}
 function cntDocs(rows,codes){const o={C:0,P:0,NC:0};for(const r of rows)for(const c of codes){const v=(r.st||{})[c];if(o[v]!=null)o[v]++}return o}
@@ -1081,13 +1106,13 @@ function gerarFicha(e){if(!e||!state.canWrite)return;
   const AD=DOCS_ADM.map(d=>d.code),DD=DOCS_DEM.map(d=>d.code);
   const spec={1:[rows,()=>cntFlag(rows,"pasta"),true,"colaboradores com pasta localizada"],2:[rows,()=>cntFlag(rows,"nome"),true,"pastas com nome conforme o cadastro"],
     5:[rows,()=>cntFlag(rows,"org"),false,"pastas sem ocorrência de organização ou nomeação"],6:[rows,()=>cntFlag(rows,"dup"),false,"pastas sem duplicidade ou arquivo ilegível"],
-    8:[ra,()=>cntDocs(ra,AD)],9:[ra,()=>cntDocs(ra,["A4"])],10:[ra,()=>cntFlag(ra,"inc"),false,"admissões sem inconsistência de dados"],11:[ra,()=>cntDocs(ra,["A5"])],12:[ra,()=>cntDocs(ra,["A10"])],13:[ra,()=>cntDocs(ra,["A3","A4","A8"])],
-    21:[rd,()=>cntDocs(rd,DD)],22:[rd,()=>cntDocs(rd,["D1","D2"])],23:[rd,()=>cntDocs(rd,["D5","D6"])]};
+    8:[ra,()=>cntDocs(ra,AD)],9:[ra,()=>cntDocs(ra,["AD2"])],11:[ra,()=>cntDocs(ra,["AD7"])],
+    21:[rd,()=>cntDocs(rd,DD)],23:[rd,()=>cntDocs(rd,["D5","D6"])]};
   for(const [i,[base,fn,todos,txt]] of Object.entries(spec)){const o=fn();const v=resItem(o,todos);const ap=o.C+o.P+o.NC;autoItems.push(+i);
     if(v){f.resp[i]=v;f.obs[i]=(txt?`${o.C} de ${ap} ${txt}.`:`${o.C} C, ${o.P} P, ${o.NC} NC em ${ap} verificações.`)+" (movimentações)"}
     else if(!base.length){f.resp[i]="NA";f.obs[i]=i>=21?"Sem desligamentos na competência.":i>=8?"Sem admissões na competência.":"Sem movimentações."}
     else if(prevAuto.has(+i)||!f.resp[i]){delete f.resp[i];f.obs[i]="Aguardando conferência na aba Movimentações."}}
-  for(const i of [3,4,7,14,15,16,17,18,19,20,24,25,26,27,28,29,30])if(!f.resp[i]){f.resp[i]="NA";f.obs[i]=f.obs[i]||"Não auditado nesta fase (auditoria de movimentações)."}
+  for(const i of [3,4,24,26,27,30])if(!f.resp[i]){f.resp[i]="NA";f.obs[i]=f.obs[i]||"Não auditado nesta fase (auditoria de movimentações)."}
   // não conformidades geradas
   const prev={};for(const n of f.ncs||[])if(n.auto)prev[n.key]=n;const novas=[];
   const pastaNao=rows.filter(r=>(r.fl||{}).pasta==="Não");
@@ -1100,9 +1125,9 @@ function gerarFicha(e){if(!e||!state.canWrite)return;
   const ordem={Alta:0,"Média":1,Baixa:2};novas.sort((a,b)=>ordem[a.prioridade]-ordem[b.prioridade]);
   f.ncs=[...(f.ncs||[]).filter(n=>!n.auto),...novas];
   // movimentações conferidas
-  f.func=[...(f.func||[]).filter(x=>!x.auto),...rows.sort((a,b)=>a.tipo.localeCompare(b.tipo)||a.nome.localeCompare(b.nome,"pt-BR")).map(r=>{const ds=docsT(r.tipo);const vs=ds.map(d=>(r.st||{})[d.code]);
+  f.func=[...(f.func||[]).filter(x=>!x.auto),...rows.sort((a,b)=>a.tipo.localeCompare(b.tipo)||a.nome.localeCompare(b.nome,"pt-BR")).map(r=>{const ds=docsRow(r);const vs=ds.map(d=>(r.st||{})[d.code]);
     const nc=ds.filter((d,i)=>vs[i]==="NC").map(d=>d.label),p=ds.filter((d,i)=>vs[i]==="P").map(d=>d.label);const na=ds.filter((d,i)=>vs[i]==="NA").map(d=>d.label+" ("+(((r.just||{})[d.code])||"sem justificativa")+")");
-    return {id:r.id,auto:true,mov:r.tipo==="adm"?"Admissão":"Desligamento",nome:r.nome,matricula:r.matricula||"",data:r.data||"",
+    return {id:r.id,auto:true,mov:r.tipo==="adm"?"Admissão":"Desligamento",nome:r.nome,funcao:r.funcao||"",matricula:r.matricula||"",data:r.data||"",
       docs:(r.fl||{}).pasta==="Não"?"Não localizada":nc.length||p.length?"Pendente":vs.every(Boolean)?"Completa":"",
       pendencias:[nc.length?"NC: "+nc.join(", "):"",p.length?"P: "+p.join(", "):"",na.length?"NA: "+na.join("; "):"",r.obs||""].filter(Boolean).join(" · ")}})];
   if(!f.parecer)f.parecer={};
@@ -1113,20 +1138,20 @@ function gerarFicha(e){if(!e||!state.canWrite)return;
 
 
 function cobertura(fsX,mvX){const fs=fsX||doComp();const mv=mvX===undefined?mvAtual():mvX;
-  return EMPRESAS.map(e=>{const f=fs.filter(x=>x.obra===e||empresaDe(x.obra)===e);const os=mv?obras(mv).filter(o=>empMv(mv,o)===e):[];
+  const semL=(mv&&mv.multi)?[]:((MOV[state.comp]||{}).semMov||[]);return EMPRESAS.map(e=>{const f=fs.filter(x=>x.obra===e||empresaDe(x.obra)===e);const os=mv?obras(mv).filter(o=>empMv(mv,o)===e):[];
     const ra=mv?mv.adm.rows.filter(r=>os.includes(r.obra)):[],rd=mv?mv.dem.rows.filter(r=>os.includes(r.obra)):[];
     const ass=[...new Set([...f.map(x=>x.assistente).filter(Boolean),...os.map(o=>(mv.assistentes||{})[o]).filter(Boolean)])];
-    return {e,f,ass,na:ra.length,nd:rd.length,ia:ra.length?agrega(ra).ind:null,id:rd.length?agrega(rd).ind:null,it:ra.length+rd.length?agrega([...ra,...rd]).ind:null,ficha:f.length?avg(f.map(x=>calc(x).ind)):null}})}
-function coberturaTable(fsX,mvX,lab){const c=cobertura(fsX,mvX);const aud=c.filter(x=>x.na+x.nd||x.f.length).length;
-  return `<p class="hint">${aud} de ${EMPRESAS.length} empresas com auditoria registrada em ${esc(lab||compLabel(state.comp))}.</p><div class="tw"><table><thead><tr><th>Empresa</th><th>Assistente</th><th class="n">Admissões</th><th class="n">Índice adm.</th><th class="n">Desligamentos</th><th class="n">Índice dem.</th><th class="n">Índice movimentações</th><th class="n">Índice ficha</th><th>Situação</th></tr></thead><tbody>
-  ${c.map(x=>{const tem=x.na+x.nd||x.f.length;return `<tr${tem?"":' style="color:var(--ink-3)"'}><td><b style="${tem?"":"font-weight:500"}">${esc(curtoEmp(x.e))}</b><div class="small muted">${esc(x.e)}</div></td><td>${esc(x.ass.join(", ")||"—")}</td><td class="n">${x.na||"—"}</td><td class="n">${x.na?heat(x.ia):"—"}</td><td class="n">${x.nd||"—"}</td><td class="n">${x.nd?heat(x.id):"—"}</td><td class="n">${x.na+x.nd?heat(x.it):"—"}</td><td class="n">${x.f.length?heat(x.ficha):"—"}</td><td>${tem?pill(x.it??x.ficha):'<span class="pill p-none">Sem auditoria</span>'}</td></tr>`}).join("")}</tbody></table></div>`}
+    return {e,f,ass,sem:semL.includes(e),na:ra.length,nd:rd.length,ia:ra.length?agrega(ra).ind:null,id:rd.length?agrega(rd).ind:null,it:ra.length+rd.length?agrega([...ra,...rd]).ind:null,ficha:f.length?avg(f.map(x=>calc(x).ind)):null}})}
+function coberturaTable(fsX,mvX,lab,edit){const c=cobertura(fsX,mvX);const aud=c.filter(x=>x.na+x.nd||x.f.length).length;const nSem=c.filter(x=>x.sem&&!(x.na+x.nd)).length;
+  return `<p class="hint">${aud} de ${EMPRESAS.length} empresas com auditoria registrada em ${esc(lab||compLabel(state.comp))}${nSem?` · ${nSem} sem movimentação na competência`:""}.</p><div class="tw"><table><thead><tr><th>Empresa</th><th>Assistente</th><th class="n">Admissões</th><th class="n">Índice adm.</th><th class="n">Desligamentos</th><th class="n">Índice dem.</th><th class="n">Índice movimentações</th><th class="n">Índice ficha</th>${edit?"<th>Sem movimentação</th>":""}<th>Situação</th></tr></thead><tbody>
+  ${c.map(x=>{const tem=x.na+x.nd||x.f.length;return `<tr${tem?"":' style="color:var(--ink-3)"'}><td><b style="${tem?"":"font-weight:500"}">${esc(curtoEmp(x.e))}</b><div class="small muted">${esc(x.e)}</div></td><td>${esc(x.ass.join(", ")||"—")}</td><td class="n">${x.na||"—"}</td><td class="n">${x.na?heat(x.ia):"—"}</td><td class="n">${x.nd||"—"}</td><td class="n">${x.nd?heat(x.id):"—"}</td><td class="n">${x.na+x.nd?heat(x.it):"—"}</td><td class="n">${x.f.length?heat(x.ficha):"—"}</td>${edit?`<td>${x.na+x.nd?'<span class="small muted">—</span>':`<label class="semchk"><input type="checkbox" data-semmov="${esc(x.e)}" ${x.sem?"checked":""} ${state.canWrite?"":"disabled"}> sem movimentação</label>`}</td>`:""}<td>${tem?pill(x.it??x.ficha):x.sem?'<span class="pill p-bom">Sem movimentação</span>':'<span class="pill p-none">Sem auditoria</span>'}</td></tr>`}).join("")}</tbody></table></div>`}
 
 /* seções do relatório a partir da importação */
 function movSecao(mv,k){const blk=mv[k];if(!blk.rows.length)return `<p class="muted">Nenhum ${k==="adm"?"admitido":"desligado"} na planilha importada.</p>`;
   const temNA=blk.rows.some(r=>r.st.includes("NA"));const naJ=r=>blk.docs.map((d,i)=>r.st[i]==="NA"?d.label+": "+((r.just||{})[d.code]||"sem justificativa"):null).filter(Boolean);const ds=porDoc(blk);const piores=blk.rows.map(r=>({r,c:rc(r)})).sort((a,b)=>(a.c.ind??2)-(b.c.ind??2));
   return `${movObraTable(mv,[k])}
    <h3>Conformidade por documento</h3><div class="tw"><table><thead><tr><th>Documento</th><th class="n">C</th><th class="n">P</th><th class="n">NC</th><th class="n">NA</th><th class="n">Índice</th></tr></thead><tbody>${ds.map(d=>`<tr><td>${esc(d.code)} · ${esc(d.label)}</td><td class="n">${d.C}</td><td class="n">${d.P}</td><td class="n">${d.NC}</td><td class="n">${d.NA}</td><td class="n">${heat(d.ind)}</td></tr>`).join("")}</tbody></table></div>
-   <h3>Colaboradores conferidos</h3><div class="tw"><table><thead><tr><th>Colaborador</th><th>Obra</th>${mv.multi?"<th>Competência</th>":""}${k==="dem"?"<th>Admissão</th><th>Desligamento</th>":"<th>Data</th>"}<th class="n">Índice</th><th>Classificação</th><th>Documentos NC</th><th>Documentos P</th>${temNA?"<th>Justificativas (NA)</th>":""}</tr></thead><tbody>${piores.map(({r,c})=>`<tr><td>${esc(r.nome)}</td><td>${esc(r.obra)}</td>${mv.multi?`<td>${esc(compLabel(r.comp))}</td>`:""}${k==="dem"?`<td class="num">${fmtD(r.adm)}</td>`:""}<td class="num">${fmtD(r.data)}</td><td class="n">${heat(c.ind)}</td><td>${pill(c.ind)}</td><td><div class="chips">${pend(blk,r,"NC").map(x=>`<span class="chip nc">${esc(x)}</span>`).join("")}</div></td><td><div class="chips">${pend(blk,r,"P").map(x=>`<span class="chip p">${esc(x)}</span>`).join("")}</div></td>${temNA?`<td class="wr">${naJ(r).map(x=>`<div class="small">${esc(x)}</div>`).join("")}</td>`:""}</tr>`).join("")}</tbody></table></div>`}
+   <h3>Colaboradores conferidos</h3><div class="tw"><table><thead><tr><th>Colaborador</th><th>Obra</th>${mv.multi?"<th>Competência</th>":""}${k==="dem"?"<th>Admissão</th><th>Desligamento</th>":"<th>Data</th>"}<th class="n">Índice</th><th>Classificação</th><th>Documentos NC</th><th>Documentos P</th>${temNA?"<th>Justificativas (NA)</th>":""}</tr></thead><tbody>${piores.map(({r,c})=>`<tr><td>${esc(r.nome)}${r.funcao?`<div class="small muted">${esc(r.funcao)}</div>`:""}</td><td>${esc(r.obra)}</td>${mv.multi?`<td>${esc(compLabel(r.comp))}</td>`:""}${k==="dem"?`<td class="num">${fmtD(r.adm)}</td>`:""}<td class="num">${fmtD(r.data)}</td><td class="n">${heat(c.ind)}</td><td>${pill(c.ind)}</td><td><div class="chips">${pend(blk,r,"NC").map(x=>`<span class="chip nc">${esc(x)}</span>`).join("")}</div></td><td><div class="chips">${pend(blk,r,"P").map(x=>`<span class="chip p">${esc(x)}</span>`).join("")}</div></td>${temNA?`<td class="wr">${naJ(r).map(x=>`<div class="small">${esc(x)}</div>`).join("")}</td>`:""}</tr>`).join("")}</tbody></table></div>`}
 
 /* ---------- envio da ficha: formato de devolutiva, PDF e texto do e-mail ---------- */
 const CNPJ_EMP={"RIO AVE POCO DA PANELA SPE LTDA.":"59.666.749/0001-15"};
@@ -1140,7 +1165,7 @@ function loadPDF(){if(window.jspdf&&window.jspdf.jsPDF.API.autoTable)return Prom
 function fichaLinhas(f){const c=calc(f);const r=f.resp||{},o=f.obs||{};
   return {c,ident:[["Empresa / obra",nomeObra(f)],["CNPJ",fmtCnpj(f.cnpj)||"—"],["Assistente responsável",f.assistente||"—"],["Auditor",f.auditor||"—"],["Data da auditoria",fmtD(f.data)],["Competência",compLabel(f.competencia)],["Tipo de auditoria",tipoAud(f.tipo)],["Funcionários ativos",f.ativos||"—"],["Pastas verificadas",f.pastas||"—"]],
     resumo:[["Índice geral",pct(c.ind)],["Classificação",faixa(c.ind)?.nome||"—"],["Itens sem marcação",String(c.sem)],["Não conformidades altas",String(c.ncAltas)]],
-    blocos:BLOCOS.map(b=>({b,itens:Array.from({length:b.ate-b.de+1},(_,j)=>b.de+j).map(i=>({i,tx:ITENS[i],r:r[i]||"",o:o[i]||""}))}))}}
+    blocos:BLOCOS.map(b=>({b,itens:b.its.map(i=>({i,tx:ITENS[i],r:r[i]||"",o:o[i]||""}))}))}}
 const corRes={C:["#DDEFE3","#2F7D4E"],P:["#F8EBCF","#A86A06"],NC:["#F6DEDB","#B3392F"],NA:["#E6EBED","#5E707A"]};
 /* ---- ficha: movimentações conferidas, por colaborador (✓ = regular; senão, a pendência) ---- */
 const movOk=x=>x.docs==="Completa";
@@ -1156,7 +1181,7 @@ function movConferidasHTML(f){const fu=f.func||[],man=(f.ncs||[]).filter(n=>!n.a
     if(!x.docs)return '<span class="dmut">A conferir</span>';
     return pp.map(([k,t])=>k==="obs"?`<div class="dobs">${esc(t)}</div>`:`<span class="chip ${k}">${esc(t)}</span>`).join(" ")};
   return `<p class="dnote" style="margin-bottom:6px">${fu.length} conferidos · <b class="okc">✓ ${ok} regulares</b> · ${pend} com pendência${aconf?` · ${aconf} a conferir`:""}</p>
-   <table class="dt"><thead><tr><th>Movimentação</th><th>Funcionário</th><th>Matrícula</th><th>Data</th><th>Pendências</th></tr></thead><tbody>${fu.map(x=>`<tr><td>${esc(x.mov)}</td><td>${movOk(x)?'<span class="okc">✓</span> ':""}${esc(x.nome)}</td><td>${esc(x.matricula)}</td><td>${fmtD(x.data)}</td><td class="wr">${cel(x)}</td></tr>`).join("")}</tbody></table>
+   <table class="dt"><thead><tr><th>Movimentação</th><th>Funcionário</th><th>Matrícula</th><th>Data</th><th>Pendências</th></tr></thead><tbody>${fu.map(x=>`<tr><td>${esc(x.mov)}</td><td>${movOk(x)?'<span class="okc">✓</span> ':""}${esc(x.nome)}${x.funcao?`<div class="small muted">${esc(x.funcao)}</div>`:""}</td><td>${esc(x.matricula)}</td><td>${fmtD(x.data)}</td><td class="wr">${cel(x)}</td></tr>`).join("")}</tbody></table>
    ${man.length?`<p class="dnote" style="margin-top:8px">Outras não conformidades registradas (processo):</p>${ncTabelaHTML(man)}`:""}`}
 function docFichaHTML(f){const L=fichaLinhas(f),c=L.c;const p=f.parecer||{};const rs=(v)=>v?`<span class="dres" style="background:${corRes[v][0]};color:${corRes[v][1]}">${v}</span>`:"";
   return `<article class="dficha" id="dficha">
@@ -1217,7 +1242,7 @@ async function baixarPDF(f){const m=$("#envmsg");if(m)m.textContent="Gerando PDF
      if(!fu.length){if((f.ncs||[]).length)ncPdf(f.ncs);else at({body:[[{content:"Nenhuma movimentação conferida nesta competência.",colSpan:1}]]})}
      else{const ok=fu.filter(movOk).length,aconf=fu.filter(x=>!x.docs).length,pend=fu.length-ok-aconf;
       y+=3;doc.setFont("helvetica","italic");doc.setFontSize(7.5);doc.setTextColor(79,99,112);doc.text(`${fu.length} conferidos - ${ok} regulares (visto verde) - ${pend} com pendencia${aconf?` - ${aconf} a conferir`:""}`,M,y);y+=2.5;
-      at({head:[["","Movimentação","Funcionário","Matrícula","Data","Pendências"]],body:fu.map(x=>[movOk(x)?"@ok":(x.docs?"!":""),x.mov||"",x.nome||"",x.matricula||"",fmtD(x.data),pendTexto(x)]),styles:{fontSize:7.5},
+      at({head:[["","Movimentação","Funcionário","Matrícula","Data","Pendências"]],body:fu.map(x=>[movOk(x)?"@ok":(x.docs?"!":""),x.mov||"",(x.nome||"")+(x.funcao?"\n"+x.funcao:""),x.matricula||"",fmtD(x.data),pendTexto(x)]),styles:{fontSize:7.5},
         columnStyles:{0:{cellWidth:8,halign:"center"},1:{cellWidth:24},2:{cellWidth:50},3:{cellWidth:17},4:{cellWidth:18}},
         didParseCell:d=>{if(d.section!=="body")return;const r0=d.row.raw&&d.row.raw[0];if(d.column.index===0)d.cell.text=[""];if(d.column.index===5&&r0==="!")d.cell.styles.textColor=[179,57,47];if(d.column.index===5&&r0==="@ok"&&d.cell.raw==="Sem pendências")d.cell.styles.textColor=[107,114,128]},
         didDrawCell:d=>{if(d.section==="body"&&d.column.index===0&&d.row.raw&&d.row.raw[0]==="@ok"){const cx=d.cell.x+d.cell.width/2,cy=d.cell.y+d.cell.height/2;doc.setDrawColor(47,125,78);doc.setLineWidth(.6);doc.line(cx-1.4,cy,cx-.4,cy+1.2);doc.line(cx-.4,cy+1.2,cx+1.6,cy-1.4);doc.setLineWidth(.15)}}});
@@ -1250,7 +1275,7 @@ function emailFicha(f){const c=calc(f);const fx=faixa(c.ind);const nm=primeiroNo
     const g=auto.filter(n=>n.prioridade===pr);if(!g.length)continue;const pz=[...new Set(g.map(n=>fmtD(n.prazo)))].join(", ");
     pts.push(`${txt} (prazo ${pz}): ${g.map(resumoNC).join("; ")}.`)}
   const cobertos=new Set(ab.map(n=>String(n.item)));
-  for(let i=1;i<=30;i++){const r=(f.resp||{})[i];const o=((f.obs||{})[i]||"").trim();if((r==="P"||r==="NC")&&o&&!cobertos.has(String(i))&&!/\(movimenta/.test(o))pts.push(`${ITENS[i].replace(/\.$/,"")}: ${o.replace(/\.$/,"")}.`)}
+  for(const i of ITENS_ATIVOS){const r=(f.resp||{})[i];const o=((f.obs||{})[i]||"").trim();if((r==="P"||r==="NC")&&o&&!cobertos.has(String(i))&&!/\(movimenta/.test(o))pts.push(`${ITENS[i].replace(/\.$/,"")}: ${o.replace(/\.$/,"")}.`)}
   const altas=ab.filter(n=>n.prioridade==="Alta");
   const assunto=`Devolutiva – Checklist de Conformidades - ${obra}${f.assistente?" - "+f.assistente:""}`;
   const corpo=[`Olá, ${nm}, ${sd}!`,"",
